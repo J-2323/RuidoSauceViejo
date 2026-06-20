@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Mediciones Sonoras · Análisis Acústico Geolocalizado</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<!-- Bibliotecas para exportación -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<style>
+  :root {
+    --bg: #07080f;
+    --panel: #0d1020;
+    --panel2: #111528;
+    --border: #1e2545;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7cfc00;
+    --gold: #ffd700;
+    --text: #c8d8f0;
+    --text-dim: #4a5878;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ===== TOQUE MÁGICO: TAMAÑO BASE MÁS GRANDE ===== */
+  html {
+    font-size: 18px;  /* ← Cambiá este valor para ajustar TODO el sitio */
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;  /* = 18px gracias al html font-size */
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(0,100,180,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(255,80,30,0.04) 0%, transparent 60%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    padding: 5px 16px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* LAYOUT */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media(max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  .panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* INSTRUCCIONES */
+  .instructions {
+    background: rgba(0,212,255,0.06);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text);
+  }
+
+  /* SEARCH BOX */
+  .search-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 18px;
+  }
+  .search-input {
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-btn {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .search-btn:hover { background: rgba(0,212,255,0.2); }
+
+  /* LAYER TOGGLE */
+  .layer-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+  .layer-btn {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .layer-btn:hover { border-color: var(--accent); color: var(--text); }
+  .layer-btn.active {
+    background: rgba(0,212,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* FORM (aparece tras click en mapa) */
+  .form-box {
+    display: none;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--accent2);
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .form-box.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+
+  .form-coords {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .input-label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+  }
+  .input-group { margin-bottom: 14px; }
+  .input-field {
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--accent); }
+  select.input-field {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%2300d4ff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  select.input-field option { background: #0d1020; color: #fff; }
+
+  textarea.input-field {
+    resize: vertical;
+    min-height: 50px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.85rem;
+  }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  .checkbox-group { margin-bottom: 16px; }
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .checkbox-label input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .btn {
+    flex: 1;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 11px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    border: 1px solid;
+  }
+  .btn-confirm {
+    background: rgba(124,252,0,0.08);
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+  .btn-confirm:hover { background: rgba(124,252,0,0.18); box-shadow: 0 0 14px rgba(124,252,0,0.2); }
+  .btn-cancel {
+    background: rgba(255,51,51,0.06);
+    border-color: #ff3333;
+    color: #ff3333;
+  }
+  .btn-cancel:hover { background: rgba(255,51,51,0.16); }
+
+  /* EXPORT BUTTONS */
+  .export-section {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .export-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .export-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .btn-export {
+    background: rgba(0,212,255,0.08);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 9px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-export:hover { background: rgba(0,212,255,0.2); box-shadow: 0 0 14px rgba(0,212,255,0.15); }
+  .btn-export.excel { border-color: #28a745; color: #28a745; background: rgba(40,167,69,0.08); }
+  .btn-export.excel:hover { background: rgba(40,167,69,0.2); box-shadow: 0 0 14px rgba(40,167,69,0.15); }
+  .btn-export.pdf { border-color: #dc3545; color: #dc3545; background: rgba(220,53,69,0.08); }
+  .btn-export.pdf:hover { background: rgba(220,53,69,0.2); box-shadow: 0 0 14px rgba(220,53,69,0.15); }
+  .btn-export.share { 
+    border-color: #1da1f2; 
+    color: #1da1f2; 
+    background: rgba(29,161,242,0.08);
+    font-size: 0.9rem;
+  }
+  .btn-export.share:hover { 
+    background: rgba(29,161,242,0.2); 
+    box-shadow: 0 0 14px rgba(29,161,242,0.15); 
+  }
+
+  /* dB SLIDER en form */
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    outline: none;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent2);
+    cursor: pointer;
+  }
+  .db-readout {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent2);
+    text-align: center;
+    margin: 4px 0;
+  }
+
+  /* MAPA */
+  .map-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    height: 500px;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+    background: #0a0d18;
+  }
+
+  /* LEYENDA DEBAJO DEL MAPA */
+  .map-legend-bottom {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 14px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px 20px;
+  }
+  .legend-row { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .legend-note {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    color: var(--accent2);
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+  .legend-note a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--accent);
+    transition: border-color 0.2s;
+  }
+  .legend-note a:hover {
+    border-bottom-color: transparent;
+  }
+
+  /* Leaflet overrides para tema oscuro */
+  .leaflet-control-zoom a {
+    background: var(--panel) !important;
+    color: var(--accent) !important;
+    border-color: var(--border) !important;
+  }
+  .leaflet-control-zoom a:hover { background: rgba(0,212,255,0.15) !important; }
+  .leaflet-control-attribution {
+    background: rgba(7,8,15,0.8) !important;
+    color: var(--text-dim) !important;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px !important;
+  }
+  .leaflet-control-attribution a { color: var(--accent) !important; }
+  .leaflet-popup-content-wrapper {
+    background: var(--panel) !important;
+    border: 1px solid var(--border);
+    color: var(--text) !important;
+    border-radius: 0 !important;
+  }
+  .leaflet-popup-tip { background: var(--panel) !important; }
+  .leaflet-popup-content { margin: 14px 16px; font-family: 'Exo 2', sans-serif; }
+  .leaflet-bar { border: none !important; }
+
+  /* Popup personalizado */
+  .popup-db {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .popup-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .popup-ref {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    color: #fff;
+  }
+  .popup-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .popup-time {
+    font-size: 10.5px;
+    color: var(--accent);
+    margin-top: 6px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .popup-delete {
+    margin-top: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #ff3333;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: inline-block;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .popup-delete:hover { border-bottom-color: #ff3333; }
+
+  /* Marcador custom (div icon) */
+  .sound-marker {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: bold;
+    font-size: 10px;
+    color: #07080f;
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 0 14px currentColor;
+    cursor: pointer;
+  }
+
+  /* LISTA DE MEDICIONES */
+  .readings-list {
+    margin-top: 20px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .reading-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(30,37,69,0.5);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .reading-item:hover { background: rgba(0,212,255,0.05); }
+  .reading-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .reading-info { flex: 1; min-width: 0; }
+  .reading-db { font-weight: bold; color: #fff; }
+  .reading-ref { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reading-time {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 20px 10px;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  /* STATS */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .stat-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-lbl {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .clear-all-btn {
+    margin-top: 14px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .clear-all-btn:hover { border-color: #ff3333; color: #ff3333; }
+
+  /* TABLA DE DATOS (exportable) */
+  .data-table-wrap {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+  .data-table-wrap h3 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .data-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 8px 10px;
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    border-bottom: 2px solid var(--border);
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .data-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(30,37,69,0.3);
+    color: var(--text);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .data-table tr:hover td { background: rgba(0,212,255,0.04); }
+  .data-table .db-cell { font-weight: bold; color: var(--accent2); }
+  .data-table .note-cell {
+    color: var(--text-dim);
+    font-style: italic;
+    max-width: 100px;
+  }
+  .data-table .date-cell {
+    max-width: none;
+    min-width: 130px;
+    white-space: nowrap;
+    color: var(--text-dim);
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Responsive */
+  @media(max-width: 900px) {
+    .map-legend-bottom {
+      grid-template-columns: 1fr 1fr;
+      font-size: 0.65rem;
+      padding: 12px 14px;
+    }
+    html { font-size: 16px; } /* En tablet se achica un poco */
+  }
+  @media(max-width: 480px) {
+    .container { padding: 15px 10px; }
+    .panel { padding: 14px; }
+    .export-grid { grid-template-columns: 1fr 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr 1fr; }
+    .map-wrap { height: 350px; }
+    .data-table-wrap { max-height: 200px; }
+    .map-legend-bottom {
+      grid-template-columns: 1fr;
+      font-size: 0.6rem;
+      padding: 10px 12px;
+    }
+    .data-table { min-width: 560px; }
+    .data-table th, .data-table td {
+      padding: 5px 6px;
+      font-size: 0.6rem;
+    }
+    .data-table .note-cell {
+      max-width: 60px;
+    }
+    .data-table .date-cell {
+      min-width: 105px;
+    }
+    html { font-size: 15px; } /* En celular se achica para que entre mejor */
+    .nav-bar { gap: 8px; }
+    .nav-btn { font-size: 0.8rem; padding: 9px 14px; letter-spacing: 1px; }
+  }
+
+  /* ─── BARRA DE NAVEGACIÓN ─── */
+  .nav-bar {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 10px 26px;
+    cursor: pointer;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .nav-btn:hover::before { opacity: 0.08; }
+  .nav-btn-punto {
+    background: rgba(255,107,53,0.08);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .nav-btn-punto:hover {
+    box-shadow: 0 0 22px rgba(255,107,53,0.35);
+    transform: translateY(-1px);
+  }
+  .nav-btn-prop {
+    background: rgba(124,252,0,0.07);
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+  .nav-btn-prop:hover {
+    box-shadow: 0 0 22px rgba(124,252,0,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ─── HERRAMIENTA DE MEDICIÓN ─── */
+  .leaflet-control-measure a {
+    background: var(--panel) !important;
+    border-color: var(--border) !important;
+    color: var(--gold) !important;
+    font-size: 16px !important;
+    line-height: 26px !important;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .leaflet-control-measure a:hover,
+  .leaflet-control-measure a.active {
+    background: rgba(255,215,0,0.15) !important;
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 12px rgba(255,215,0,0.3) !important;
+  }
+  .leaflet-control-measure a.active {
+    color: var(--gold) !important;
+  }
+  #measure-status {
+    display: none;
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(7,8,15,0.93);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 7px 16px;
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: 1px;
+    box-shadow: 0 0 16px rgba(255,215,0,0.2);
+  }
+  .measure-dist-label {
+    background: rgba(7,8,15,0.93);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 9px;
+    white-space: nowrap;
+    box-shadow: 0 0 8px rgba(255,215,0,0.25);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="container" id="capture-area">
+
+  <header>
+    <div class="badge">· MÓDULO DE ANÁLISIS ACÚSTICO ·</div>
+    <h1>Mapa de Mediciones Sonoras</h1>
+    <p class="subtitle">GEOLOCALIZACIÓN DE NIVELES DE PRESIÓN SONORA · CLICK PARA REGISTRAR</p>
+    <nav class="nav-bar">
+      <a class="nav-btn nav-btn-punto" href="mediciones_sonido\sonido-en-punto.html">📍 Medición Puntual</a>
+      <a class="nav-btn nav-btn-prop" href="mediciones_sonido\sonido-propagacion.html">🌊 Propagación Sonora</a>
+    </nav>
+  </header>
+
+  <div class="main-layout">
+
+    <!-- PANEL LATERAL -->
+    <div class="panel">
+      <div class="panel-title">REGISTRO DE PUNTOS</div>
+
+      <div class="instructions">
+        📍 Hacé click en cualquier punto del mapa para agregar una medición. Completá el dB leído y una referencia (auto, calle, oficina, etc.)
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Vista del mapa</label>
+        <div class="layer-toggle">
+          <button class="layer-btn active" id="layer-dark" onclick="setMapLayer('dark')">🌙 Oscuro</button>
+          <button class="layer-btn" id="layer-light" onclick="setMapLayer('light')">☀️ Claro</button>
+          <button class="layer-btn" id="layer-sat" onclick="setMapLayer('sat')">🛰️ Satélite</button>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <input class="search-input" id="search-input" type="text" placeholder="Buscar dirección o lugar...">
+        <button class="search-btn" onclick="searchLocation()">🔍</button>
+      </div>
+
+      <!-- FORMULARIO -->
+      <div class="form-box" id="form-box">
+        <div class="form-coords" id="form-coords">Lat: — / Lng: —</div>
+
+        <div class="input-group">
+          <label class="input-label">Nivel Sonoro (dB)</label>
+          <div class="db-readout" id="db-readout">70</div>
+          <input type="range" id="db-input" min="0" max="140" step="1" value="70">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Tipo de Fuente</label>
+          <select class="input-field" id="ref-select">
+            <option value="custom">— Personalizado —</option>
+            <option value="Termoelectrica">🏭 Termoelectrica</option>
+            <option value="Tráfico / Autos">🚗 Tráfico / Autos</option>
+            <option value="Calle / Vereda">🛣️ Calle / Vereda</option>
+            <option value="Oficina">🏢 Oficina</option>
+            <option value="Vivienda">🏠 Vivienda</option>
+            <option value="Construcción">🏗️ Construcción</option>
+            <option value="Bar / Boliche">🎵 Bar / Boliche</option>
+            <option value="Industria / Fábrica">🏭 Industria / Fábrica</option>
+            <option value="Parque / Plaza">🌳 Parque / Plaza</option>
+            <option value="Aeropuerto / Avión">✈️ Aeropuerto / Avión</option>
+            <option value="Transporte público">🚌 Transporte público</option>
+          </select>
+        </div>
+
+        <div class="input-group" id="custom-ref-group" style="display:none;">
+          <label class="input-label">Referencia Personalizada</label>
+          <input class="input-field" id="custom-ref-input" type="text" placeholder="Ej: Bocina de camión">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Nota (opcional)</label>
+          <textarea class="input-field" id="note-input" placeholder="Detalles adicionales..."></textarea>
+        </div>
+
+        <div class="input-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="timestamp-check" checked>
+            <span>🕐 Registrar fecha y hora automáticamente</span>
+          </label>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-confirm" onclick="confirmPoint()">✓ Guardar</button>
+          <button class="btn btn-cancel" onclick="cancelPoint()">✕ Cancelar</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val" id="stat-count">0</div>
+          <div class="stat-lbl">PUNTOS</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-avg">—</div>
+          <div class="stat-lbl">PROM. dB</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-max">—</div>
+          <div class="stat-lbl">MÁX. dB</div>
+        </div>
+      </div>
+
+      <div class="readings-list" id="readings-list">
+        <div class="empty-state">Sin mediciones registradas todavía.<br>Hacé click en el mapa para empezar.</div>
+      </div>
+
+      <!-- EXPORTACIONES -->
+      <div class="export-section">
+        <span class="export-label">📤 Exportar / Compartir</span>
+        <div class="export-grid">
+          <button class="btn-export" onclick="exportImage()">🖼️ Imagen</button>
+          <button class="btn-export pdf" onclick="exportPDF()">📄 PDF</button>
+          <button class="btn-export excel" onclick="exportExcel()">📊 Excel</button>
+          <button class="btn-export share" onclick="shareData()">🔗 Compartir</button>
+        </div>
+      </div>
+
+      <button class="clear-all-btn" onclick="clearAll()">🗑 Borrar todas las mediciones</button>
+    </div>
+
+    <!-- MAPA + LEYENDA -->
+    <div>
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div id="measure-status"></div>
+      </div>
+      <!-- LEYENDA DEBAJO DEL MAPA -->
+      <div class="map-legend-bottom">
+        <div class="legend-row"><div class="legend-dot" style="background:#4a8878;box-shadow:0 0 6px #4a8878"></div> &lt; 40 dB · Silencioso</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div> 40–60 dB · Normal</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#7cfc00;box-shadow:0 0 6px #7cfc00"></div> 60–75 dB · Moderado</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ffd700;box-shadow:0 0 6px #ffd700"></div> 75–90 dB · Alto</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ff6b35;box-shadow:0 0 6px #ff6b35"></div> 90–110 dB · Riesgo</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ff3333;box-shadow:0 0 6px #ff3333"></div> &gt; 110 dB · Peligroso</div>
+        <div class="legend-note">
+          ⚠ 30dB a 40 dB sostenidos 24h, sobre todo de noche, ALTERA el SUEÑO 
+          <a href="https://www.google.com/search?q=https://www.euro.who.int/en/health-topics/environment-and-health/noise/environmental-noise-guidelines-for-the-european-region" target="_blank" rel="noopener noreferrer">
+            (ref. OMS)
+          </a>
+          <span style="display:inline-block; font-size:0.6rem; color:var(--text-dim); margin-left:4px;">
+            · Exposición breve normal
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TABLA DE DATOS (crece dinámicamente) -->
+  <div class="data-table-wrap" id="data-table-wrap">
+    <h3>📋 Listado de Mediciones</h3>
+    <table class="data-table" id="data-table">
+      <thead>
+        <tr>
+          <th>Lat</th>
+          <th>Lng</th>
+          <th>dB</th>
+          <th>Tipo</th>
+          <th>Nota</th>
+          <th>Fecha/Hora</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div id="table-empty" class="empty-state" style="padding:12px 0;">No hay mediciones registradas.</div>
+  </div>
+
+</div>
+
+<script>
+// ─── ESTADO ───────────────────────────────────────────────────────────────────
+let readings = [];
+let pendingLatLng = null;
+let markers = {};
+let idCounter = 0;
+
+const STORAGE_KEY = 'mapa_sonido_readings';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(readings));
+    localStorage.setItem(STORAGE_KEY + '_counter', String(idCounter));
+  } catch (e) {
+    console.error('No se pudo guardar en almacenamiento local:', e);
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const counterRaw = localStorage.getItem(STORAGE_KEY + '_counter');
+    if (raw) readings = JSON.parse(raw);
+    if (counterRaw) idCounter = parseInt(counterRaw, 10) || 0;
+  } catch (e) {
+    console.error('No se pudo cargar el almacenamiento local:', e);
+    readings = [];
+  }
+}
+
+// ─── COLOR POR NIVEL ──────────────────────────────────────────────────────────
+function getColorForDb(db) {
+  if (db < 40)  return '#4a8878';
+  if (db < 60)  return '#00d4ff';
+  if (db < 75)  return '#7cfc00';
+  if (db < 90)  return '#ffd700';
+  if (db < 110) return '#ff6b35';
+  return '#ff3333';
+}
+
+// ─── INICIALIZAR MAPA ─────────────────────────────────────────────────────────
+const map = L.map('map', {
+  zoomControl: true,
+  attributionControl: true
+}).setView([-31.6716, -60.7864], 14);
+
+// Capas de mapa disponibles
+const mapLayers = {
+  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19, subdomains: 'abcd'
+  }),
+  light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19, subdomains: 'abcd'
+  }),
+  sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri',
+    maxZoom: 19
+  })
+};
+
+let currentLayer = localStorage.getItem('mapa_sonido_layer') || 'dark';
+mapLayers[currentLayer].addTo(map);
+document.getElementById('layer-' + currentLayer).classList.add('active');
+document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+document.getElementById('layer-' + currentLayer).classList.add('active');
+
+function setMapLayer(name) {
+  if (name === currentLayer) return;
+  map.removeLayer(mapLayers[currentLayer]);
+  mapLayers[name].addTo(map);
+  currentLayer = name;
+  localStorage.setItem('mapa_sonido_layer', name);
+  document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('layer-' + name).classList.add('active');
+}
+
+// ─── HERRAMIENTA DE MEDICIÓN (tipo Google Earth) ──────────────────────────────
+let measureActive = false;
+let measurePoints  = [];
+let measurePolyline = null;
+let measureDotMarkers = [];
+let measureLabelMarker = null;
+
+// Leaflet control personalizado
+const MeasureControl = L.Control.extend({
+  options: { position: 'topleft' },
+  onAdd: function() {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-measure');
+    const a = L.DomUtil.create('a', '', container);
+    a.id = 'measure-btn';
+    a.href = '#';
+    a.title = 'Herramienta de medición · clic para activar/desactivar';
+    a.innerHTML = '📏';
+    a.setAttribute('role', 'button');
+    L.DomEvent.on(a, 'click', function(e) {
+      L.DomEvent.preventDefault(e);
+      L.DomEvent.stopPropagation(e);
+      toggleMeasure();
+    });
+    return container;
+  }
+});
+new MeasureControl().addTo(map);
+
+function toggleMeasure() {
+  measureActive = !measureActive;
+  const btn = document.getElementById('measure-btn');
+  if (measureActive) {
+    btn.classList.add('active');
+    map.getContainer().style.cursor = 'crosshair';
+    map.doubleClickZoom.disable();
+    setMeasureStatus('📏  Clic para agregar puntos · ESC para cancelar');
+  } else {
+    btn.classList.remove('active');
+    map.getContainer().style.cursor = '';
+    map.doubleClickZoom.enable();
+    clearMeasure();
+    hideMeasureStatus();
+  }
+}
+
+function addMeasurePoint(latlng) {
+  measurePoints.push(latlng);
+
+  // Punto visual dorado
+  const dot = L.circleMarker(latlng, {
+    radius: 5,
+    color: '#ffd700',
+    fillColor: '#ffd700',
+    fillOpacity: 1,
+    weight: 2,
+    interactive: false
+  }).addTo(map);
+  measureDotMarkers.push(dot);
+
+  // Polilínea
+  if (measurePolyline) map.removeLayer(measurePolyline);
+  if (measurePoints.length > 1) {
+    measurePolyline = L.polyline(measurePoints, {
+      color: '#ffd700',
+      weight: 2,
+      dashArray: '7 5',
+      opacity: 0.9,
+      interactive: false
+    }).addTo(map);
+  }
+
+  updateMeasureLabel();
+}
+
+function getTotalDistance() {
+  let total = 0;
+  for (let i = 1; i < measurePoints.length; i++) {
+    total += measurePoints[i - 1].distanceTo(measurePoints[i]);
+  }
+  return total;
+}
+
+function formatDistance(m) {
+  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(3)} km`;
+}
+
+function updateMeasureLabel() {
+  if (measurePoints.length < 2) return;
+  const total = getTotalDistance();
+  const last = measurePoints[measurePoints.length - 1];
+
+  if (measureLabelMarker) map.removeLayer(measureLabelMarker);
+  measureLabelMarker = L.marker(last, {
+    icon: L.divIcon({
+      className: '',
+      html: `<div class="measure-dist-label">${formatDistance(total)}</div>`,
+      iconAnchor: [-10, 12]
+    }),
+    interactive: false,
+    zIndexOffset: 900
+  }).addTo(map);
+
+  setMeasureStatus(`📏  ${measurePoints.length} puntos · Distancia total: ${formatDistance(total)} · ESC para terminar`);
+}
+
+function clearMeasure() {
+  measurePoints = [];
+  if (measurePolyline) { map.removeLayer(measurePolyline); measurePolyline = null; }
+  measureDotMarkers.forEach(m => map.removeLayer(m));
+  measureDotMarkers = [];
+  if (measureLabelMarker) { map.removeLayer(measureLabelMarker); measureLabelMarker = null; }
+}
+
+function setMeasureStatus(txt) {
+  const el = document.getElementById('measure-status');
+  el.textContent = txt;
+  el.style.display = 'block';
+}
+function hideMeasureStatus() {
+  document.getElementById('measure-status').style.display = 'none';
+}
+
+// ESC cancela la medición
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && measureActive) {
+    measureActive = false;
+    const btn = document.getElementById('measure-btn');
+    if (btn) btn.classList.remove('active');
+    map.getContainer().style.cursor = '';
+    map.doubleClickZoom.enable();
+    clearMeasure();
+    hideMeasureStatus();
+  }
+});
+
+// Click en el mapa → medir O abrir formulario
+map.on('click', function(e) {
+  if (measureActive) { addMeasurePoint(e.latlng); return; }
+  pendingLatLng = e.latlng;
+  document.getElementById('form-coords').textContent =
+    `Lat: ${e.latlng.lat.toFixed(5)} / Lng: ${e.latlng.lng.toFixed(5)}`;
+  document.getElementById('form-box').classList.add('active');
+  document.getElementById('form-box').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+// ─── SLIDER dB ────────────────────────────────────────────────────────────────
+const dbInput = document.getElementById('db-input');
+const dbReadout = document.getElementById('db-readout');
+dbInput.addEventListener('input', () => {
+  dbReadout.textContent = dbInput.value;
+  dbReadout.style.color = getColorForDb(parseFloat(dbInput.value));
+});
+dbReadout.style.color = getColorForDb(70);
+
+// ─── SELECT DE REFERENCIA ─────────────────────────────────────────────────────
+const refSelect = document.getElementById('ref-select');
+const customGroup = document.getElementById('custom-ref-group');
+refSelect.addEventListener('change', () => {
+  customGroup.style.display = refSelect.value === 'custom' ? 'block' : 'none';
+});
+
+// ─── BUSCAR DIRECCIÓN ────────────────────────────────────────────────────────
+async function searchLocation() {
+  const query = document.getElementById('search-input').value.trim();
+  if (!query) return;
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const { lat, lon } = data[0];
+      map.setView([parseFloat(lat), parseFloat(lon)], 17);
+    } else {
+      alert('No se encontró esa dirección. Probá con más detalle (ciudad, país).');
+    }
+  } catch (err) {
+    alert('Error al buscar la dirección. Verificá tu conexión.');
+  }
+}
+document.getElementById('search-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') searchLocation();
+});
+
+// ─── CONFIRMAR PUNTO ──────────────────────────────────────────────────────────
+function confirmPoint() {
+  if (!pendingLatLng) return;
+
+  const db = parseFloat(dbInput.value);
+  let ref = refSelect.value;
+  if (ref === 'custom') {
+    ref = document.getElementById('custom-ref-input').value.trim() || 'Sin especificar';
+  }
+  const note = document.getElementById('note-input').value.trim();
+  const color = getColorForDb(db);
+  const id = 'r' + (idCounter++);
+  const includeTimestamp = document.getElementById('timestamp-check').checked;
+  const timestamp = includeTimestamp ? new Date().toISOString() : null;
+
+  const reading = { id, lat: pendingLatLng.lat, lng: pendingLatLng.lng, db, ref, note, color, timestamp };
+  readings.push(reading);
+
+  addMarkerToMap(reading);
+  renderList();
+  renderStats();
+  renderTable();
+  saveToStorage();
+  resetForm();
+}
+
+function formatTimestamp(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const fecha = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const hora = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+  return `${fecha} · ${hora}`;
+}
+
+function addMarkerToMap(reading) {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="sound-marker" style="background:${reading.color};color:#07080f;">${reading.db}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+
+  const marker = L.marker([reading.lat, reading.lng], { icon }).addTo(map);
+
+  const popupHtml = `
+    <div class="popup-db" style="color:${reading.color}">${reading.db} dB</div>
+    <div class="popup-label">Nivel de Presión Sonora</div>
+    <div class="popup-ref">${reading.ref}</div>
+    ${reading.note ? `<div class="popup-note">${escapeHtml(reading.note)}</div>` : ''}
+    ${reading.timestamp ? `<div class="popup-time">🕐 ${formatTimestamp(reading.timestamp)}</div>` : ''}
+    <span class="popup-delete" onclick="deleteReading('${reading.id}')">✕ Eliminar punto</span>
+  `;
+  marker.bindPopup(popupHtml);
+  markers[reading.id] = marker;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function cancelPoint() {
+  resetForm();
+}
+
+function resetForm() {
+  pendingLatLng = null;
+  document.getElementById('form-box').classList.remove('active');
+  dbInput.value = 70;
+  dbReadout.textContent = 70;
+  dbReadout.style.color = getColorForDb(70);
+  refSelect.value = 'custom';
+  customGroup.style.display = 'block';
+  document.getElementById('custom-ref-input').value = '';
+  document.getElementById('note-input').value = '';
+  document.getElementById('timestamp-check').checked = true;
+}
+
+// ─── ELIMINAR PUNTO ───────────────────────────────────────────────────────────
+function deleteReading(id) {
+  if (markers[id]) {
+    map.removeLayer(markers[id]);
+    delete markers[id];
+  }
+  readings = readings.filter(r => r.id !== id);
+  renderList();
+  renderStats();
+  renderTable();
+  saveToStorage();
+}
+
+function clearAll() {
+  if (readings.length === 0) return;
+  if (!confirm('¿Borrar todas las mediciones registradas? Esta acción no se puede deshacer.')) return;
+  Object.values(markers).forEach(m => map.removeLayer(m));
+  markers = {};
+  readings = [];
+  renderList();
+  renderStats();
+  renderTable();
+  saveToStorage();
+}
+
+// ─── LISTA LATERAL ────────────────────────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('readings-list');
+  if (readings.length === 0) {
+    list.innerHTML = `<div class="empty-state">Sin mediciones registradas todavía.<br>Hacé click en el mapa para empezar.</div>`;
+    return;
+  }
+  list.innerHTML = readings.slice().reverse().map(r => `
+    <div class="reading-item" onclick="focusReading('${r.id}')">
+      <div class="reading-dot" style="background:${r.color};color:${r.color}"></div>
+      <div class="reading-info">
+        <span class="reading-db">${r.db} dB</span> — <span class="reading-ref">${escapeHtml(r.ref)}</span>
+        ${r.timestamp ? `<div class="reading-time">${formatTimestamp(r.timestamp)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function focusReading(id) {
+  const r = readings.find(x => x.id === id);
+  if (!r) return;
+  map.setView([r.lat, r.lng], 17, { animate: true });
+  markers[id].openPopup();
+}
+
+// ─── TABLA DE DATOS ──────────────────────────────────────────────────────────
+function renderTable() {
+  const body = document.getElementById('table-body');
+  const empty = document.getElementById('table-empty');
+  if (readings.length === 0) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = readings.map(r => `
+    <tr>
+      <td>${r.lat.toFixed(5)}</td>
+      <td>${r.lng.toFixed(5)}</td>
+      <td class="db-cell" style="color:${r.color}">${r.db} dB</td>
+      <td>${escapeHtml(r.ref)}</td>
+      <td class="note-cell">${r.note ? escapeHtml(r.note) : '—'}</td>
+      <td class="date-cell">${r.timestamp ? formatTimestamp(r.timestamp) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ─── ESTADÍSTICAS ─────────────────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('stat-count').textContent = readings.length;
+  if (readings.length === 0) {
+    document.getElementById('stat-avg').textContent = '—';
+    document.getElementById('stat-max').textContent = '—';
+    return;
+  }
+  const avg = readings.reduce((s, r) => s + r.db, 0) / readings.length;
+  const max = Math.max(...readings.map(r => r.db));
+  document.getElementById('stat-avg').textContent = avg.toFixed(1);
+  document.getElementById('stat-max').textContent = max.toFixed(0);
+}
+
+// ─── EXPORTACIONES ──────────────────────────────────────────────────────────
+async function exportImage() {
+  const panel = document.querySelector('.main-layout .panel');
+  const mainLayout = document.querySelector('.main-layout');
+  const originalPanelDisplay = panel.style.display;
+  const originalGridCols = mainLayout.style.gridTemplateColumns;
+
+  try {
+    // Ocultamos el panel lateral (Registro de puntos / Vista del mapa / Exportar)
+    // para que no aparezca en la imagen exportada, y el mapa ocupa todo el ancho.
+    panel.style.display = 'none';
+    mainLayout.style.gridTemplateColumns = '1fr';
+
+    const area = document.getElementById('capture-area');
+    const canvas = await html2canvas(area, {
+      backgroundColor: '#07080f',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    const link = document.createElement('a');
+    link.download = `reporte_sonoro_${new Date().getTime()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (e) {
+    alert('Error al exportar la imagen: ' + e.message);
+  } finally {
+    // Restauramos el panel y el layout original siempre, haya o no error.
+    panel.style.display = originalPanelDisplay;
+    mainLayout.style.gridTemplateColumns = originalGridCols;
+  }
+}
+
+async function exportPDF() {
+  // Botón de feedback mientras procesa
+  const pdfBtn = document.querySelector('.btn-export.pdf');
+  const originalLabel = pdfBtn ? pdfBtn.textContent : '';
+  if (pdfBtn) pdfBtn.textContent = '⏳ Generando...';
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc   = new jsPDF('portrait', 'mm', 'a4');
+    const margin     = 14;
+    const pageWidth  = doc.internal.pageSize.getWidth();  // 210
+    const usableW    = pageWidth - margin * 2;             // 182
+    let   y          = 16;
+
+    // ── ENCABEZADO ──────────────────────────────────────────────────────────
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Reporte de Mediciones Sonoras', margin, y);
+    y += 7;
+
+    doc.setFontSize(9);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`Exportado: ${new Date().toLocaleString('es-AR')}`, margin, y);
+    y += 6;
+
+    if (readings.length > 0) {
+      const avg = readings.reduce((s, r) => s + r.db, 0) / readings.length;
+      const max = Math.max(...readings.map(r => r.db));
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(
+        `${readings.length} mediciones  ·  Promedio: ${avg.toFixed(1)} dB  ·  Máximo: ${max.toFixed(0)} dB`,
+        margin, y
+      );
+      y += 7;
+    } else {
+      y += 2;
+    }
+
+    // ── CAPTURA DEL MAPA ─────────────────────────────────────────────────────
+    // Se captura el mapa con los marcadores de medición sonora y,
+    // si la herramienta de medición está activa, también la línea y los puntos.
+    const mapEl = document.getElementById('map');
+    let mapCaptured = false;
+    try {
+      const canvas = await html2canvas(mapEl, {
+        useCORS:         true,
+        allowTaint:      false,
+        backgroundColor: '#0a0d18',
+        scale:           1.5,
+        logging:         false
+      });
+
+      // Escalar manteniendo aspect-ratio; max 108mm de alto
+      const aspect      = canvas.height / canvas.width;
+      const imgW        = usableW;
+      const imgH        = Math.min(imgW * aspect, 108);
+      const imgData     = canvas.toDataURL('image/jpeg', 0.92);
+
+      // Borde sutil alrededor del mapa
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.3);
+      doc.rect(margin, y, imgW, imgH);
+      doc.addImage(imgData, 'JPEG', margin, y, imgW, imgH);
+      y += imgH + 5;
+      mapCaptured = true;
+    } catch (mapErr) {
+      doc.setFontSize(8);
+      doc.setTextColor(180, 60, 60);
+      doc.text('(No se pudo capturar la imagen del mapa)', margin, y);
+      y += 6;
+    }
+
+    // ── BLOQUE DE MEDICIÓN DE DISTANCIA ──────────────────────────────────────
+    // Se incluye si la herramienta de medición tiene al menos 2 puntos activos.
+    if (measurePoints.length >= 2) {
+      const totalDist = getTotalDistance();
+
+      // Fondo dorado suave
+      doc.setFillColor(255, 251, 220);
+      doc.setDrawColor(200, 160, 0);
+      doc.setLineWidth(0.3);
+
+      // Calculamos cuántas líneas de coordenadas necesitamos
+      const coordLines = [];
+      for (let i = 0; i < measurePoints.length; i++) {
+        const p = measurePoints[i];
+        coordLines.push(`P${i + 1}: ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`);
+      }
+      // Agrupamos de a 3 puntos por fila para que entre en el ancho
+      const coordRows = [];
+      for (let i = 0; i < coordLines.length; i += 3) {
+        coordRows.push(coordLines.slice(i, i + 3).join('     '));
+      }
+
+      const blockH = 10 + coordRows.length * 4.5;
+      doc.rect(margin, y, usableW, blockH, 'FD');
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 70, 0);
+      doc.text(
+        `Medición de distancia:  ${formatDistance(totalDist)}  ·  ${measurePoints.length} puntos`,
+        margin + 3, y + 6
+      );
+
+      doc.setFontSize(7);
+      doc.setTextColor(120, 90, 20);
+      coordRows.forEach((row, i) => {
+        doc.text(row, margin + 3, y + 11 + i * 4.5);
+      });
+
+      y += blockH + 5;
+    }
+
+    // ── TABLA DE MEDICIONES SONORAS ───────────────────────────────────────────
+    if (readings.length > 0) {
+      const rows = readings.map(r => [
+        r.lat.toFixed(5),
+        r.lng.toFixed(5),
+        `${r.db} dB`,
+        r.ref,
+        r.note || '—',
+        r.timestamp ? formatTimestamp(r.timestamp) : '—'
+      ]);
+
+      doc.autoTable({
+        startY: y,
+        head: [['Latitud', 'Longitud', 'dB', 'Tipo de Fuente', 'Nota', 'Fecha/Hora']],
+        body: rows,
+        theme: 'grid',
+        styles: {
+          font: 'helvetica',
+          fontSize: 7.5,
+          textColor: [0, 0, 0],
+          lineColor: [180, 180, 180],
+          lineWidth: 0.2,
+          cellPadding: 2.5
+        },
+        headStyles: {
+          fillColor: [0, 180, 255],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8
+        },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        columnStyles: {
+          0: { cellWidth: 26 },
+          1: { cellWidth: 26 },
+          2: { cellWidth: 16 },
+          3: { cellWidth: 42 },
+          4: { cellWidth: 38 },
+          5: { cellWidth: 34 }
+        },
+        margin: { left: margin, right: margin }
+      });
+    } else if (!mapCaptured && measurePoints.length < 2) {
+      doc.setFontSize(10);
+      doc.setTextColor(120, 120, 120);
+      doc.text('No hay mediciones registradas.', margin, y + 10);
+    }
+
+    doc.save(`reporte_sonoro_${new Date().getTime()}.pdf`);
+  } catch (e) {
+    alert('Error al exportar PDF: ' + e.message);
+  } finally {
+    if (pdfBtn) pdfBtn.textContent = originalLabel;
+  }
+}
+
+async function exportExcel() {
+  try {
+    if (readings.length === 0) {
+      alert('No hay datos para exportar.');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Mapa de Mediciones Sonoras';
+    workbook.created = new Date();
+
+    const ws = workbook.addWorksheet('Mediciones');
+
+    // Columnas
+    ws.columns = [
+      { header: 'Latitud',       key: 'lat',   width: 14 },
+      { header: 'Longitud',      key: 'lng',   width: 14 },
+      { header: 'dB',            key: 'db',    width: 8  },
+      { header: 'Tipo de Fuente',key: 'ref',   width: 26 },
+      { header: 'Nota',          key: 'note',  width: 28 },
+      { header: 'Fecha/Hora',    key: 'fecha', width: 22 }
+    ];
+
+    // Estilo encabezado (igual que PDF: fondo celeste, texto blanco, negrita)
+    const headerRow = ws.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B4FF' } };
+      cell.font   = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Calibri', size: 11 };
+      cell.border = {
+        top:    { style: 'thin', color: { argb: 'FFB0B0B0' } },
+        left:   { style: 'thin', color: { argb: 'FFB0B0B0' } },
+        bottom: { style: 'thin', color: { argb: 'FFB0B0B0' } },
+        right:  { style: 'thin', color: { argb: 'FFB0B0B0' } }
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+    headerRow.height = 20;
+
+    // Filas de datos
+    readings.forEach((r, i) => {
+      const row = ws.addRow({
+        lat:   r.lat,
+        lng:   r.lng,
+        db:    r.db,
+        ref:   r.ref,
+        note:  r.note || '',
+        fecha: r.timestamp ? new Date(r.timestamp).toLocaleString('es-AR') : ''
+      });
+
+      // Filas alternas (igual que PDF: blanco / gris muy suave)
+      const bgColor = i % 2 === 0 ? 'FFFFFFFF' : 'FFF5F5F5';
+      row.eachCell({ includeEmpty: true }, cell => {
+        cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+        cell.font   = { color: { argb: 'FF000000' }, name: 'Calibri', size: 10 };
+        cell.border = {
+          top:    { style: 'thin', color: { argb: 'FFB4B4B4' } },
+          left:   { style: 'thin', color: { argb: 'FFB4B4B4' } },
+          bottom: { style: 'thin', color: { argb: 'FFB4B4B4' } },
+          right:  { style: 'thin', color: { argb: 'FFB4B4B4' } }
+        };
+        cell.alignment = { vertical: 'middle' };
+      });
+      row.height = 18;
+    });
+
+    // Exportar
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mediciones_${new Date().getTime()}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Error al exportar Excel: ' + e.message);
+  }
+}
+
+// ─── COMPARTIR ──────────────────────────────────────────────────────────────
+function shareData() {
+  if (readings.length === 0) {
+    alert('No hay mediciones para compartir.');
+    return;
+  }
+
+  const total = readings.length;
+  const avg = (readings.reduce((s, r) => s + r.db, 0) / total).toFixed(1);
+  const max = Math.max(...readings.map(r => r.db));
+  const min = Math.min(...readings.map(r => r.db));
+
+  const shareText = `🔊 Mapa de Mediciones Sonoras\n` +
+    `📊 ${total} mediciones registradas\n` +
+    `📈 Promedio: ${avg} dB | Máx: ${max} dB | Mín: ${min} dB\n` +
+    `📍 ${readings.length > 0 ? `Última: ${readings[readings.length-1].ref} (${readings[readings.length-1].db} dB)` : ''}\n` +
+    `\n#MedicionesSonoras #Acústica #MapaDeRuido`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Mapa de Mediciones Sonoras',
+      text: shareText,
+      url: window.location.href
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(shareText + '\n' + window.location.href).then(() => {
+      alert('✅ Resumen copiado al portapapeles. ¡Pegalo donde quieras compartirlo!');
+    }).catch(() => {
+      alert(shareText + '\n\n(URL: ' + window.location.href + ')');
+    });
+  }
+}
+
+// ─── INICIALIZACIÓN: cargar mediciones guardadas ─────────────────────────────
+loadFromStorage();
+readings.forEach(r => addMarkerToMap(r));
+renderList();
+renderStats();
+renderTable();
+if (readings.length > 0) {
+  const bounds = L.latLngBounds(readings.map(r => [r.lat, r.lng]));
+  map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+}
+</script>
+</body>
+</html>

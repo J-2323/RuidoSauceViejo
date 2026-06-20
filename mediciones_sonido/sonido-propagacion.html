@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propagación del Sonido · Calculadora Acústica</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080f;
+    --panel: #0d1020;
+    --panel2: #111528;
+    --border: #1e2545;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7cfc00;
+    --gold: #ffd700;
+    --text: #c8d8f0;
+    --text-dim: #4a5878;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+    --glow2: 0 0 20px rgba(255,107,53,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(0,100,180,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(255,80,30,0.04) 0%, transparent 60%);
+  }
+
+  /* GRID DE FONDO */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    padding: 5px 16px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* LAYOUT PRINCIPAL */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  @media(max-width: 700px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* PANELES */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .panel.accent2::before {
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+  }
+  .panel.accent3::before {
+    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+  }
+
+  .panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    flex-shrink: 0;
+  }
+  .panel.accent2 .panel-title { color: var(--accent2); }
+  .panel.accent2 .panel-title::before { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .panel.accent3 .panel-title { color: var(--accent3); }
+  .panel.accent3 .panel-title::before { background: var(--accent3); box-shadow: 0 0 8px var(--accent3); }
+
+  /* INPUTS */
+  .input-group {
+    margin-bottom: 22px;
+  }
+  .input-label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+  }
+  .input-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .input-field {
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 22px;
+    padding: 12px 18px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+  .input-field::-webkit-outer-spin-button,
+  .input-field::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .input-field:focus {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 15px rgba(0,212,255,0.05), 0 0 10px rgba(0,212,255,0.15);
+  }
+  .input-unit {
+    background: rgba(0,212,255,0.08);
+    border: 1px solid var(--border);
+    border-left: 1px solid rgba(0,212,255,0.2);
+    padding: 12px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  /* SLIDER */
+  .slider-wrap {
+    margin-top: 10px;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    outline: none;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type="range"].orange::-webkit-slider-thumb { background: var(--accent2); box-shadow: 0 0 10px var(--accent2); }
+  .slider-marks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* BOTÓN */
+  .calc-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,212,255,0.05));
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    padding: 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.15), transparent);
+    transform: translateY(-50%);
+    transition: left 0.4s;
+  }
+  .calc-btn:hover { background: rgba(0,212,255,0.15); box-shadow: var(--glow); }
+  .calc-btn:hover::before { left: 100%; }
+  .calc-btn:active { transform: scale(0.99); }
+
+  /* RESULTADO */
+  .result-display {
+    text-align: center;
+    padding: 20px;
+  }
+  .result-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .result-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1;
+    transition: all 0.5s;
+    position: relative;
+  }
+  .result-value.cyan { color: var(--accent); text-shadow: 0 0 30px rgba(0,212,255,0.5); }
+  .result-value.orange { color: var(--accent2); text-shadow: 0 0 30px rgba(255,107,53,0.5); }
+  .result-value.green { color: var(--accent3); text-shadow: 0 0 30px rgba(124,252,0,0.5); }
+  .result-value.red { color: #ff3333; text-shadow: 0 0 30px rgba(255,51,51,0.5); }
+  .result-unit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 5px;
+  }
+
+  .meter-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-top: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1), background 0.5s;
+    width: 0%;
+    position: relative;
+  }
+  .meter-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+  }
+
+  /* INTERPRETACIÓN */
+  .interpretation {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.3);
+    border-left: 3px solid var(--accent);
+    font-size: 13px;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text);
+    line-height: 1.5;
+    transition: border-color 0.3s;
+  }
+
+  /* FORMULA */
+  .formula-box {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    padding: 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 2;
+    text-align: center;
+  }
+  .formula-box .eq {
+    font-size: 16px;
+    color: var(--text);
+    margin: 8px 0;
+    display: block;
+  }
+  .formula-box span.hl { color: var(--accent); }
+  .formula-box span.hl2 { color: var(--accent2); }
+  .formula-box span.hl3 { color: var(--accent3); }
+
+  /* CANVAS */
+  canvas {
+    width: 100%;
+    display: block;
+    background: transparent;
+  }
+
+  .chart-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .chart-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+    opacity: 0.5;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  @media(max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
+
+  /* TABLA DE REFERENCIA */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+  }
+  .ref-table th {
+    text-align: left;
+    padding: 10px 14px;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+  .ref-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(30,37,69,0.5);
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+  .ref-table tr:hover td { color: var(--text); background: rgba(0,212,255,0.03); }
+  .ref-table td:last-child { text-align: right; }
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* ONDAS ANIMADAS */
+  .wave-visual {
+    position: relative;
+    height: 80px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  /* INDICADOR DE RATIO */
+  .ratio-display {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .ratio-item {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    padding: 12px;
+    text-align: center;
+  }
+  .ratio-item .r-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--gold);
+  }
+  .ratio-item .r-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+
+  .full-panel {
+    grid-column: 1 / -1;
+  }
+
+  /* BOTÓN EXPORTAR */
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(124,252,0,0.08), rgba(124,252,0,0.03));
+    border: 1px solid var(--accent3);
+    color: var(--accent3);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    padding: 14px 40px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .export-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(124,252,0,0.12), transparent);
+    transform: translateY(-50%);
+    transition: left 0.4s;
+  }
+  .export-btn:hover { background: rgba(124,252,0,0.12); box-shadow: 0 0 20px rgba(124,252,0,0.25); }
+  .export-btn:hover::before { left: 100%; }
+  .export-btn:active { transform: scale(0.99); }
+  .export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .export-btn.loading { animation: pulse-border 0.8s infinite; }
+
+  /* ANIMACIÓN PULSO */
+  @keyframes pulse-border {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animated { animation: fade-in-up 0.4s ease forwards; }
+
+  /* PUNTO ORIGEN INDICADOR */
+  .origin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,107,53,0.1);
+    border: 1px solid rgba(255,107,53,0.3);
+    padding: 6px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    margin-bottom: 14px;
+  }
+  .origin-dot {
+    width: 8px; height: 8px;
+    background: var(--accent2);
+    border-radius: 50%;
+    animation: pulse-border 1.5s infinite;
+    box-shadow: 0 0 8px var(--accent2);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="badge">· MÓDULO DE ANÁLISIS ACÚSTICO ·</div>
+    <h1>Propagación del Sonido</h1>
+    <p class="subtitle">MODELO DE DECAIMIENTO INVERSO CUADRÁTICO · LEY 1/r²</p>
+  </header>
+
+  <!-- FÓRMULA -->
+  <div class="chart-panel" style="margin-bottom:20px;">
+    <div class="panel-title" style="color:var(--accent3)">
+      <span style="color:var(--accent3)">●</span> FUNDAMENTO MATEMÁTICO
+    </div>
+    <div class="formula-box">
+      <span>Ley de Decaimiento Inverso Cuadrático</span>
+      <span class="eq">
+        <span class="hl2">L₂</span> = <span class="hl">L₁</span> − 20 · log₁₀(<span class="hl2">d₂</span> / <span class="hl">d₁</span>)
+      </span>
+      <span>Despejando el origen:</span>
+      <span class="eq">
+        <span class="hl">L_origen</span> = <span class="hl2">L_medido</span> + 20 · log₁₀(<span class="hl2">d_medición</span> / <span class="hl3">d_ref</span>)
+      </span>
+      <span style="font-size:11px">donde <span class="hl3">d_ref = 1 m</span> (distancia de referencia estándar ISO 1996)</span>
+    </div>
+  </div>
+
+  <!-- INPUTS + RESULTADO -->
+  <div class="main-grid">
+    <!-- PANEL DE ENTRADA -->
+    <div class="panel">
+      <div class="panel-title">PARÁMETROS DE MEDICIÓN</div>
+
+      <div class="input-group">
+        <label class="input-label">Nivel de Presión Sonora Medido</label>
+        <div class="input-row">
+          <input class="input-field" type="number" id="db-input" value="65" min="0" max="200" step="0.5">
+          <div class="input-unit">dB SPL</div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="db-slider" min="0" max="200" step="0.5" value="65">
+          <div class="slider-marks"><span>0</span><span>50</span><span>100</span><span>150</span><span>200</span></div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Distancia de Medición</label>
+        <div class="input-row">
+          <input class="input-field" type="number" id="dist-input" value="10" min="0.1" max="1000" step="0.1">
+          <div class="input-unit" style="color:var(--accent2);background:rgba(255,107,53,0.08);border-left-color:rgba(255,107,53,0.2)">metros</div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" class="orange" id="dist-slider" min="0.1" max="500" step="0.1" value="10">
+          <div class="slider-marks"><span>0.1</span><span>125</span><span>250</span><span>375</span><span>500</span></div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calculate()">▶ CALCULAR ORIGEN</button>
+    </div>
+
+    <!-- PANEL DE RESULTADO -->
+    <div class="panel accent2">
+      <div class="panel-title">RESULTADO · PUNTO DE ORIGEN</div>
+      <div class="origin-badge"><div class="origin-dot"></div> FUENTE EMISORA · d = 1 m (ISO ref.)</div>
+
+      <div class="result-display">
+        <div class="result-label">Nivel Sonoro en Origen</div>
+        <div class="result-value cyan" id="result-db">—</div>
+        <div class="result-unit">dB SPL a 1 metro</div>
+        <div class="meter-bar"><div class="meter-fill" id="meter-fill"></div></div>
+      </div>
+
+      <div class="ratio-display">
+        <div class="ratio-item">
+          <div class="r-val" id="ratio-intensidad">—</div>
+          <div class="r-label">RATIO INTENSIDAD</div>
+        </div>
+        <div class="ratio-item">
+          <div class="r-val" id="ratio-presion">—</div>
+          <div class="r-label">RATIO PRESIÓN</div>
+        </div>
+        <div class="ratio-item">
+          <div class="r-val" id="delta-db">—</div>
+          <div class="r-label">DIFERENCIA dB</div>
+        </div>
+      </div>
+
+      <div class="interpretation" id="interpretation">
+        Ingresá los valores y presioná CALCULAR
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="charts-grid">
+    <div class="chart-panel">
+      <div class="panel-title" style="color:var(--accent3)"><span style="color:var(--accent3)">●</span> DECAIMIENTO vs DISTANCIA</div>
+      <canvas id="chart-decay" height="220"></canvas>
+    </div>
+    <div class="chart-panel">
+      <div class="panel-title" style="color:var(--accent2)"><span style="color:var(--accent2)">●</span> FRENTE DE ONDA (RADIAL)</div>
+      <canvas id="chart-wave" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-panel">
+      <div class="panel-title"><span>●</span> DISTRIBUCIÓN LOGARÍTMICA</div>
+      <canvas id="chart-bar" height="200"></canvas>
+    </div>
+    <div class="chart-panel">
+      <div class="panel-title" style="color:var(--gold)"><span style="color:var(--gold)">●</span> REFERENCIA DE NIVELES SONOROS</div>
+      <div style="overflow-x:auto;">
+        <table class="ref-table" id="ref-table">
+          <thead><tr><th>Fuente</th><th>Nivel</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN EXPORTAR -->
+  <div style="text-align:center; margin-top:10px; padding-bottom:10px;">
+    <button class="export-btn" id="export-btn" onclick="exportImage()">
+      <span id="export-icon">⬇</span> <span id="export-label">EXPORTAR COMO IMAGEN PNG</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ─── ESTADO ───────────────────────────────────────────────────────────────────
+let currentDb = 65, currentDist = 10, currentResult = null;
+
+// ─── SINCRONIZACIÓN INPUTS / SLIDERS ─────────────────────────────────────────
+const dbInput = document.getElementById('db-input');
+const dbSlider = document.getElementById('db-slider');
+const distInput = document.getElementById('dist-input');
+const distSlider = document.getElementById('dist-slider');
+
+dbInput.addEventListener('input', () => { dbSlider.value = dbInput.value; calculate(); });
+dbSlider.addEventListener('input', () => { dbInput.value = dbSlider.value; calculate(); });
+distInput.addEventListener('input', () => { distSlider.value = distInput.value; calculate(); });
+distSlider.addEventListener('input', () => { distInput.value = distSlider.value; calculate(); });
+
+// ─── TABLA DE REFERENCIAS ────────────────────────────────────────────────────
+const REF = [
+  { src: 'Umbral de audición', db: 0,   color: '#4a5878' },
+  { src: 'Susurro', db: 20,  color: '#4a8878' },
+  { src: 'Biblioteca',        db: 40,  color: '#4a7878' },
+  { src: 'Conversación normal',db: 60, color: '#00d4ff' },
+  { src: 'Tráfico urbano',    db: 75,  color: '#7cfc00' },
+  { src: 'Moto (a 5m)',       db: 90,  color: '#ffd700' },
+  { src: 'Martillo neumático',db: 110, color: '#ff6b35' },
+  { src: 'Concierto rock',    db: 120, color: '#ff3333' },
+  { src: 'Umbral del dolor',  db: 130, color: '#ff0000' },
+  { src: 'Motor a reacción',  db: 150, color: '#cc0000' },
+];
+
+function getColorForDb(db) {
+  if (db < 40)  return '#4a8878';
+  if (db < 60)  return '#00d4ff';
+  if (db < 75)  return '#7cfc00';
+  if (db < 90)  return '#ffd700';
+  if (db < 110) return '#ff6b35';
+  if (db < 130) return '#ff3333';
+  return '#cc0000';
+}
+
+function getInterpretation(db) {
+  if (db < 0)   return { text: 'Por debajo del umbral de audición humana.', cls: 'cyan' };
+  if (db < 30)  return { text: '🔕 Silencio casi absoluto. Ambiente anecóico.', cls: 'cyan' };
+  if (db < 50)  return { text: '🤫 Ambiente muy silencioso. Biblioteca o dormitorio.', cls: 'cyan' };
+  if (db < 70)  return { text: '🗣️ Conversación normal. Zona de confort auditivo.', cls: 'green' };
+  if (db < 85)  return { text: '⚠️ Tráfico o maquinaria suave. Exposición prolongada: moderada.', cls: 'green' };
+  if (db < 100) return { text: '🔊 Nivel alto. Exposición continua puede causar daños.', cls: 'orange' };
+  if (db < 120) return { text: '⚠️ RIESGO AUDITIVO. Usar protección obligatoria.', cls: 'orange' };
+  if (db < 140) return { text: '🚨 PELIGROSO. Umbral del dolor. Daño inmediato posible.', cls: 'red' };
+  return { text: '☢️ EXTREMADAMENTE PELIGROSO. Daño auditivo instantáneo.', cls: 'red' };
+}
+
+// Llenar tabla de referencia
+(function fillTable() {
+  const tbody = document.querySelector('#ref-table tbody');
+  REF.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="dot" style="background:${r.color}"></span>${r.src}</td>
+      <td style="color:${r.color};font-weight:600">${r.db} dB</td>`;
+    tbody.appendChild(tr);
+  });
+})();
+
+// ─── CÁLCULO PRINCIPAL ────────────────────────────────────────────────────────
+function calculate() {
+  const dBMedido = parseFloat(dbInput.value);
+  const dist = parseFloat(distInput.value);
+
+  if (isNaN(dBMedido) || isNaN(dist) || dist <= 0) return;
+
+  // L_origen = L_medido + 20·log10(d/1)
+  const dRef = 1;
+  const dBOrigen = dBMedido + 20 * Math.log10(dist / dRef);
+  const delta = dBOrigen - dBMedido;
+
+  currentDb = dBMedido;
+  currentDist = dist;
+  currentResult = dBOrigen;
+
+  // Actualizar display
+  const resEl = document.getElementById('result-db');
+  resEl.textContent = dBOrigen.toFixed(1);
+  const interp = getInterpretation(dBOrigen);
+  resEl.className = `result-value ${interp.cls} animated`;
+
+  // Meter bar
+  const fill = document.getElementById('meter-fill');
+  const pct = Math.min(100, Math.max(0, (dBOrigen / 200) * 100));
+  const mColor = getColorForDb(dBOrigen);
+  fill.style.width = pct + '%';
+  fill.style.background = `linear-gradient(90deg, ${mColor}66, ${mColor})`;
+
+  // Ratios
+  const ratioI = Math.pow(dist / dRef, 2).toFixed(1) + '×';
+  const ratioP = (dist / dRef).toFixed(1) + '×';
+  document.getElementById('ratio-intensidad').textContent = ratioI;
+  document.getElementById('ratio-presion').textContent = ratioP;
+  document.getElementById('delta-db').textContent = '+' + delta.toFixed(1) + ' dB';
+
+  // Interpretación
+  const interpBox = document.getElementById('interpretation');
+  interpBox.textContent = interp.text;
+  interpBox.style.borderLeftColor = getColorForDb(dBOrigen);
+
+  // Actualizar tabla (resaltar fila más cercana)
+  highlightRef(dBOrigen);
+
+  // Dibujar gráficos
+  drawDecayChart();
+  drawWaveChart();
+  drawBarChart();
+}
+
+function highlightRef(db) {
+  const rows = document.querySelectorAll('#ref-table tbody tr');
+  let closest = -1, minDiff = Infinity;
+  REF.forEach((r, i) => {
+    const d = Math.abs(r.db - db);
+    if (d < minDiff) { minDiff = d; closest = i; }
+  });
+  rows.forEach((r, i) => {
+    r.style.background = i === closest ? 'rgba(0,212,255,0.07)' : '';
+  });
+}
+
+// ─── GRÁFICO 1: DECAIMIENTO vs DISTANCIA ─────────────────────────────────────
+function drawDecayChart() {
+  const canvas = document.getElementById('chart-decay');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  const H = canvas.height = 220 * window.devicePixelRatio;
+  const sc = window.devicePixelRatio;
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { t: 20*sc, r: 20*sc, b: 36*sc, l: 52*sc };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+
+  const dbOri = currentResult !== null ? currentResult : currentDb + 20 * Math.log10(currentDist);
+  const maxDist = Math.max(currentDist * 2.5, 30);
+  const dbMax = Math.ceil((dbOri + 5) / 10) * 10;
+  const dbMin = Math.max(0, Math.floor((dbOri - 80) / 10) * 10);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(30,37,69,0.8)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.t + (cH / 5) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cW, y);
+    ctx.stroke();
+    const val = dbMax - ((dbMax - dbMin) / 5) * i;
+    ctx.fillStyle = 'rgba(74,88,120,0.9)';
+    ctx.font = `${10*sc}px Share Tech Mono`;
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(0) + ' dB', pad.l - 6*sc, y + 4*sc);
+  }
+  for (let i = 0; i <= 5; i++) {
+    const x = pad.l + (cW / 5) * i;
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + cH);
+    ctx.stroke();
+    const val = (maxDist / 5) * i;
+    ctx.fillStyle = 'rgba(74,88,120,0.9)';
+    ctx.textAlign = 'center';
+    ctx.fillText(val.toFixed(0) + 'm', x, pad.t + cH + 16*sc);
+  }
+
+  // Zonas de peligro (fondo)
+  function dbToY(db) {
+    return pad.t + cH - ((db - dbMin) / (dbMax - dbMin)) * cH;
+  }
+  function distToX(d) {
+    return pad.l + (d / maxDist) * cW;
+  }
+
+  // Área rellena bajo la curva
+  const gradient = ctx.createLinearGradient(0, pad.t, 0, pad.t + cH);
+  gradient.addColorStop(0, 'rgba(255,51,51,0.15)');
+  gradient.addColorStop(0.4, 'rgba(255,107,53,0.1)');
+  gradient.addColorStop(1, 'rgba(0,212,255,0.05)');
+
+  ctx.beginPath();
+  ctx.moveTo(distToX(0.5), dbToY(dbOri));
+  let firstX = distToX(0.5), firstY = dbToY(dbOri);
+  for (let d = 0.5; d <= maxDist; d += maxDist / 200) {
+    const db = dbOri + 20 * Math.log10(1 / d);
+    const x = distToX(d);
+    const y = dbToY(db);
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(distToX(maxDist), pad.t + cH);
+  ctx.lineTo(firstX, pad.t + cH);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Curva principal
+  ctx.beginPath();
+  ctx.moveTo(firstX, firstY);
+  let first = true;
+  for (let d = 0.5; d <= maxDist; d += maxDist / 300) {
+    const db = dbOri + 20 * Math.log10(1 / d);
+    const x = distToX(d);
+    const y = dbToY(db);
+    if (y < pad.t) continue;
+    if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 2.5 * sc;
+  ctx.stroke();
+
+  // Punto medición
+  const xM = distToX(currentDist);
+  const yM = dbToY(currentDb);
+  // Líneas punteadas
+  ctx.setLineDash([4*sc, 4*sc]);
+  ctx.strokeStyle = 'rgba(255,107,53,0.5)';
+  ctx.lineWidth = 1.5*sc;
+  ctx.beginPath(); ctx.moveTo(xM, pad.t); ctx.lineTo(xM, yM); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad.l, yM); ctx.lineTo(xM, yM); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Punto origen (d=1)
+  const xO = distToX(1);
+  const yO = dbToY(dbOri);
+  ctx.beginPath();
+  ctx.arc(xO, yO, 7*sc, 0, Math.PI*2);
+  ctx.fillStyle = '#ff6b35';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5*sc;
+  ctx.stroke();
+  ctx.fillStyle = '#ff6b35';
+  ctx.font = `bold ${10*sc}px Share Tech Mono`;
+  ctx.textAlign = 'left';
+  ctx.fillText('ORIGEN', xO + 10*sc, yO + 4*sc);
+
+  // Punto medición
+  ctx.beginPath();
+  ctx.arc(xM, yM, 7*sc, 0, Math.PI*2);
+  ctx.fillStyle = '#00d4ff';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5*sc;
+  ctx.stroke();
+  ctx.fillStyle = '#00d4ff';
+  ctx.font = `bold ${10*sc}px Share Tech Mono`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`${currentDist}m`, xM + 10*sc, yM - 6*sc);
+}
+
+// ─── GRÁFICO 2: FRENTE DE ONDA RADIAL ────────────────────────────────────────
+function drawWaveChart() {
+  const canvas = document.getElementById('chart-wave');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  const H = canvas.height = 220 * window.devicePixelRatio;
+  const sc = window.devicePixelRatio;
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2;
+  const dbOri = currentResult !== null ? currentResult : currentDb + 20 * Math.log10(currentDist);
+  const maxR = Math.min(W, H) * 0.42;
+  const maxDist = Math.max(currentDist * 1.5, 20);
+
+  // Ondas concéntricas (isofónicas)
+  const levels = [10, 20, 30, 40, 50, 60, 70, 80];
+  levels.forEach(lvl => {
+    const dAtLvl = Math.pow(10, (dbOri - lvl) / 20);
+    const r = (dAtLvl / maxDist) * maxR;
+    if (r > 3 && r < maxR * 1.5) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.min(r, maxR), 0, Math.PI * 2);
+      const alpha = 0.15 - (lvl / 80) * 0.1;
+      ctx.strokeStyle = `rgba(0,212,255,${alpha + 0.08})`;
+      ctx.lineWidth = 1 * sc;
+      ctx.stroke();
+
+      // Etiqueta dB
+      if (r < maxR - 10*sc && r > 15*sc) {
+        ctx.fillStyle = `rgba(74,88,120,0.9)`;
+        ctx.font = `${9*sc}px Share Tech Mono`;
+        ctx.textAlign = 'center';
+        ctx.fillText(lvl + ' dB', cx, cy - r + 12*sc);
+      }
+    }
+  });
+
+  // Punto medición (círculo)
+  const rM = (currentDist / maxDist) * maxR;
+  ctx.beginPath();
+  ctx.arc(cx, cy, Math.min(rM, maxR), 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,212,255,0.5)';
+  ctx.lineWidth = 2 * sc;
+  ctx.setLineDash([6*sc, 4*sc]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Rayos
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * maxR, cy + Math.sin(a) * maxR);
+    ctx.strokeStyle = 'rgba(30,37,69,0.6)';
+    ctx.lineWidth = 1 * sc;
+    ctx.stroke();
+  }
+
+  // Gradiente de energía
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+  grad.addColorStop(0, 'rgba(255,107,53,0.3)');
+  grad.addColorStop(0.15, 'rgba(255,107,53,0.15)');
+  grad.addColorStop(0.4, 'rgba(0,212,255,0.06)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Punto origen
+  ctx.beginPath();
+  ctx.arc(cx, cy, 6*sc, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff6b35';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12*sc, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,107,53,0.4)';
+  ctx.lineWidth = 2*sc;
+  ctx.stroke();
+
+  // Punto de medición en la derecha (0°)
+  const pmX = cx + Math.min(rM, maxR);
+  const pmY = cy;
+  ctx.beginPath();
+  ctx.arc(pmX, pmY, 6*sc, 0, Math.PI * 2);
+  ctx.fillStyle = '#00d4ff';
+  ctx.fill();
+
+  // Etiqueta distancia
+  ctx.fillStyle = '#00d4ff';
+  ctx.font = `bold ${10*sc}px Share Tech Mono`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`${currentDist} m`, pmX + 8*sc, pmY + 4*sc);
+
+  // Eje dB en origen
+  ctx.fillStyle = '#ff6b35';
+  ctx.font = `bold ${10*sc}px Share Tech Mono`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`${dbOri.toFixed(1)} dB`, cx, cy + 20*sc);
+}
+
+// ─── GRÁFICO 3: BARRAS LOGARÍTMICAS ──────────────────────────────────────────
+function drawBarChart() {
+  const canvas = document.getElementById('chart-bar');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  const H = canvas.height = 200 * window.devicePixelRatio;
+  const sc = window.devicePixelRatio;
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { t: 14*sc, r: 14*sc, b: 36*sc, l: 48*sc };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+
+  const dbOri = currentResult !== null ? currentResult : currentDb + 20 * Math.log10(currentDist);
+
+  // Distancias para las barras
+  const distances = [1, 2, 5, 10, 20, 50, 100, 200, 500];
+  const values = distances.map(d => dbOri + 20 * Math.log10(1 / d));
+  const maxVal = Math.max(...values, 20);
+  const minVal = Math.min(0, ...values);
+
+  const bW = cW / distances.length;
+
+  // Grid
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (cH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cW, y);
+    ctx.strokeStyle = 'rgba(30,37,69,0.8)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    const val = maxVal - ((maxVal - minVal) / 4) * i;
+    ctx.fillStyle = 'rgba(74,88,120,0.9)';
+    ctx.font = `${9*sc}px Share Tech Mono`;
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(0), pad.l - 6*sc, y + 3*sc);
+  }
+
+  // Barras
+  distances.forEach((d, i) => {
+    const v = values[i];
+    const barH = Math.max(0, ((v - minVal) / (maxVal - minVal)) * cH);
+    const x = pad.l + i * bW + bW * 0.1;
+    const bw = bW * 0.8;
+    const y = pad.t + cH - barH;
+
+    const color = getColorForDb(v);
+
+    // Barra con gradiente
+    const grad = ctx.createLinearGradient(0, y, 0, pad.t + cH);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, color + '44');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, bw, barH);
+
+    // Resaltado punto medición
+    if (Math.abs(d - currentDist) < d * 0.5) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5*sc;
+      ctx.strokeRect(x, y, bw, barH);
+    }
+
+    // Etiqueta distancia
+    ctx.fillStyle = 'rgba(74,88,120,0.9)';
+    ctx.font = `${9*sc}px Share Tech Mono`;
+    ctx.textAlign = 'center';
+    ctx.fillText(d < 1000 ? d + 'm' : (d/1000)+'km', x + bw/2, pad.t + cH + 14*sc);
+
+    // Valor dB
+    if (v > minVal + (maxVal - minVal) * 0.15 && v < 1000) {
+      ctx.fillStyle = color;
+      ctx.font = `bold ${9*sc}px Share Tech Mono`;
+      ctx.fillText(v.toFixed(0), x + bw/2, y - 4*sc);
+    }
+  });
+
+  // Línea punto de medición
+  const xM = pad.l + (currentDist / distances[distances.length - 1]) * cW;
+  if (xM > pad.l && xM < pad.l + cW) {
+    ctx.beginPath();
+    ctx.moveTo(xM, pad.t);
+    ctx.lineTo(xM, pad.t + cH);
+    ctx.setLineDash([4*sc, 4*sc]);
+    ctx.strokeStyle = 'rgba(0,212,255,0.4)';
+    ctx.lineWidth = 1.5*sc;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+// ─── REDIMENSIONADO ───────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  if (currentResult !== null) {
+    drawDecayChart(); drawWaveChart(); drawBarChart();
+  }
+});
+
+// ─── EXPORTAR COMO IMAGEN ─────────────────────────────────────────────────────
+async function exportImage() {
+  const btn = document.getElementById('export-btn');
+  const labelEl = document.getElementById('export-label');
+  const iconEl = document.getElementById('export-icon');
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  labelEl.textContent = 'GENERANDO IMAGEN...';
+  iconEl.textContent = '⏳';
+
+  try {
+    // Cargar html2canvas dinámicamente
+    if (!window.html2canvas) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    // Redibujar canvases con fondo sólido para la captura
+    drawDecayChart(); drawWaveChart(); drawBarChart();
+
+    const element = document.querySelector('.container');
+
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#07080f',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      onclone: (doc) => {
+        // Asegurar fondo correcto en el clon
+        doc.body.style.background = '#07080f';
+      }
+    });
+
+    // Descargar
+    const link = document.createElement('a');
+    const dbVal = document.getElementById('result-db').textContent;
+    const ts = new Date().toISOString().slice(0,16).replace('T','-').replace(':','h');
+    link.download = `sonido-${dbVal.replace('—','calculadora')}dB-${ts}.png`;
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.click();
+
+    labelEl.textContent = '✓ IMAGEN DESCARGADA';
+    iconEl.textContent = '✅';
+    setTimeout(() => {
+      labelEl.textContent = 'EXPORTAR COMO IMAGEN PNG';
+      iconEl.textContent = '⬇';
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }, 2500);
+
+  } catch (err) {
+    console.error(err);
+    labelEl.textContent = 'ERROR AL EXPORTAR';
+    iconEl.textContent = '❌';
+    setTimeout(() => {
+      labelEl.textContent = 'EXPORTAR COMO IMAGEN PNG';
+      iconEl.textContent = '⬇';
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }, 2500);
+  }
+}
+
+// ─── INICIO ───────────────────────────────────────────────────────────────────
+calculate();
+</script>
+</body>
+</html>
