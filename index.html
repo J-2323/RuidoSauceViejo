@@ -12,6 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #07080f;
@@ -727,12 +728,17 @@
       min-width: 105px;
     }
     html { font-size: 15px; }
-    .nav-bar { gap: 8px; }
-    .nav-btn  { font-size: 0.8rem; padding: 9px 14px; letter-spacing: 1px; }
-    /* En mobile ocultar Lat, Lng y Nota de la tabla para que no haga scroll */
-    .col-latlng, .col-nota { display: none !important; }
-    .data-table-wrap { overflow-x: hidden; }
-    .data-table { min-width: unset; }
+    /* Botones del nav todos igual ancho en mobile */
+    .nav-bar {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+    }
+    .nav-btn { justify-content: center; text-align: center; font-size: 0.78rem; padding: 9px 8px; letter-spacing: 1px; }
+    /* Tabla con scroll horizontal (todas las columnas visibles) */
+    .col-latlng, .col-nota { display: table-cell !important; }
+    .data-table-wrap { overflow-x: auto; }
+    .data-table { min-width: 580px; }
   }
 
   /* ─── BOTONES DE REFERENCIA (fila inferior del nav) ─── */
@@ -877,6 +883,91 @@
     box-shadow: 0 0 8px rgba(255,215,0,0.25);
     pointer-events: none;
   }
+
+  /* ─── CONTROL PERFIL DE ELEVACIÓN ─── */
+  .leaflet-control-elev a {
+    background: var(--panel) !important;
+    border-color: var(--border) !important;
+    color: #7cfc00 !important;
+    font-size: 15px !important;
+    line-height: 26px !important;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .leaflet-control-elev a:hover,
+  .leaflet-control-elev a.active {
+    background: rgba(124,252,0,0.15) !important;
+    border-color: #7cfc00 !important;
+    box-shadow: 0 0 12px rgba(124,252,0,0.3) !important;
+  }
+  #elev-status {
+    display: none;
+    position: absolute;
+    bottom: 62px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1002;
+    background: rgba(7,8,15,0.93);
+    border: 1px solid #7cfc00;
+    color: #7cfc00;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 7px 16px;
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: 1px;
+    box-shadow: 0 0 16px rgba(124,252,0,0.2);
+  }
+  /* Panel perfil */
+  #elevation-panel {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 14px 18px 18px;
+    position: relative;
+  }
+  #elevation-panel::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, #7cfc00, transparent);
+    opacity: 0.5;
+  }
+  .elev-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+  }
+  .elev-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 2px;
+    color: #7cfc00; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .elev-title::before {
+    content:''; width:6px; height:6px;
+    background:#7cfc00; border-radius:50%; box-shadow:0 0 8px #7cfc00;
+  }
+  .elev-stats {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; color: var(--text-dim);
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .elev-stat-val { color: #7cfc00; font-weight: bold; }
+  .elev-close {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; padding: 4px 10px; cursor: pointer; transition: all 0.2s;
+  }
+  .elev-close:hover { border-color: #ff3333; color: #ff3333; }
+  #elevation-chart-wrap { position: relative; height: 200px; }
+  #elev-loading {
+    display: none; position: absolute; inset: 0;
+    background: rgba(7,8,15,0.75);
+    align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem; color: #7cfc00; letter-spacing: 2px; z-index: 10;
+  }
+  #elev-loading.visible { display: flex; }
 </style>
 </head>
 <body>
@@ -890,7 +981,7 @@
       <a class="nav-btn nav-btn-punto" href="mediciones_sonido/sonido-en-punto.html">📍 Medición Puntual</a>
       <a class="nav-btn nav-btn-prop"  href="mediciones_sonido/sonido-propagacion.html">🌊 Propagación Sonora</a>
       <a class="nav-btn nav-btn-ref"   href="https://www.who.int/europe/publications/i/item/9789289053563" target="_blank" rel="noopener">🏥 OMS · Sonido y Salud</a>
-      <a class="nav-btn nav-btn-ref"   href="PDFs/Ordenanza_Comunal_3309.pdf#page=31" target="_blank" target="_blank" rel="noopener">📍 Sauce Viejo · Ruidos</a>
+      <a class="nav-btn nav-btn-ref"   href="#" onclick="openSauceViejo(event)">📍 Sauce Viejo · Ruidos</a>
       <a class="nav-btn nav-btn-ref"   href="https://leyes-ar.com/codigo_civil_y_comercial/1973.htm" target="_blank" target="_blank" rel="noopener">⚖️ Argentina · Legislación</a>
     </nav>
   </header>
@@ -1000,7 +1091,7 @@
         </div>
       </div>
 
-      <button class="clear-all-btn" id="clear-all-btn" style="display:none" onclick="clearAll()">🗑 Borrar todas las mediciones</button>
+      <button class="clear-all-btn" id="clear-all-btn" onclick="clearAll()">🗑 Borrar todas las mediciones</button>
     </div>
 
     <!-- MAPA + LEYENDA -->
@@ -1008,7 +1099,21 @@
       <div class="map-wrap">
         <div id="map"></div>
         <div id="measure-status"></div>
+        <div id="elev-status"></div>
         <button id="measure-cancel-mobile" onclick="cancelMeasureMobile()">✕ Cancelar medición</button>
+      </div>
+
+      <!-- PANEL PERFIL DE ELEVACIÓN -->
+      <div id="elevation-panel">
+        <div class="elev-header">
+          <span class="elev-title">🏔️ Perfil de Elevación del Terreno</span>
+          <div class="elev-stats" id="elev-stats"></div>
+          <button class="elev-close" onclick="clearElevation()">✕ Cerrar</button>
+        </div>
+        <div id="elevation-chart-wrap">
+          <canvas id="elevation-chart"></canvas>
+          <div id="elev-loading">⏳ Consultando elevaciones...</div>
+        </div>
       </div>
       <!-- LEYENDA DEBAJO DEL MAPA -->
       <div class="map-legend-bottom">
@@ -1019,7 +1124,7 @@
         <div class="legend-row"><div class="legend-dot" style="background:#ff6b35;box-shadow:0 0 6px #ff6b35"></div> 90–110 dB · Riesgo</div>
         <div class="legend-row"><div class="legend-dot" style="background:#ff3333;box-shadow:0 0 6px #ff3333"></div> &gt; 110 dB · Peligroso</div>
         <div class="legend-note">
-          ⚠ 30dB a 40 dB sostenidos 24h, sobre todo de noche, ALTERA el SUEÑO 
+          ⚠ 40 dB sostenidos 24h, sobre todo de noche, ya altera el sueño 
           <a href="https://www.google.com/search?q=https://www.euro.who.int/en/health-topics/environment-and-health/noise/environmental-noise-guidelines-for-the-european-region" target="_blank" rel="noopener noreferrer">
             (ref. OMS)
           </a>
@@ -1051,7 +1156,10 @@
     <div id="table-empty" class="empty-state" style="padding:12px 0;">No hay mediciones registradas.</div>
   </div>
 
-</div>
+</div><!-- /container -->
+
+<!-- TOAST -->
+<div id="toast"></div>
 
 <script>
 // ─── ESTADO ───────────────────────────────────────────────────────────────────
@@ -1061,9 +1169,40 @@ let markers = {};
 let idCounter = 0;
 
 // ─── ADMIN (acceso vía ?admin=tuClave en la URL) ──────────────────────────────
-// Cambiá 'mapaAdmin2024' por tu clave personal antes de publicar
 const ADMIN_KEY  = 'mapaAdmin2024';
 const isAdmin    = new URLSearchParams(window.location.search).get('admin') === ADMIN_KEY;
+
+// ─── UTILIDADES ───────────────────────────────────────────────────────────────
+function formatDateForFilename() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function showToast(msg, ms = 3500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, ms);
+}
+
+// ─── SAUCE VIEJO – apertura inteligente según dispositivo ─────────────────────
+// Desktop → PDF oficial página 31 · Mobile/Tablet → PDF local páginas 30-31
+function openSauceViejo(e) {
+  e.preventDefault();
+  const isMobileOrTablet = window.matchMedia('(max-width: 1024px)').matches
+    || ('ontouchstart' in window && window.innerWidth <= 1366);
+  if (isMobileOrTablet) {
+    // PDF liviano con las páginas relevantes (sin CORS, abre directo)
+    window.open('Ordenanza_Comunal_3309-30-31.pdf', '_blank');
+  } else {
+    window.open(
+      'https://www.sauceviejo.gob.ar/images/ordenanzas/Ordenanza_Comunal_3309.pdf#page=31',
+      '_blank'
+    );
+  }
+}
 
 const STORAGE_KEY = 'mapa_sonido_readings';
 
@@ -1289,9 +1428,10 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Click en el mapa → medir O abrir formulario
+// Click en el mapa → medir O elevar O abrir formulario
 map.on('click', function(e) {
   if (measureActive) { addMeasurePoint(e.latlng); return; }
+  if (elevActive)    { addElevPoint(e.latlng);    return; }
   pendingLatLng = e.latlng;
   document.getElementById('form-coords').textContent =
     `Lat: ${e.latlng.lat.toFixed(5)} / Lng: ${e.latlng.lng.toFixed(5)}`;
@@ -1567,6 +1707,29 @@ async function exportImage() {
 
   const restoreSvg = await prepareMeasurementForCapture();
 
+  // Expandir ancho para capturar todo el contenido (especialmente en mobile)
+  const captureArea = document.getElementById('capture-area');
+  const origCAStyle = captureArea.getAttribute('style') || '';
+  captureArea.style.minWidth  = '980px';
+  captureArea.style.width     = '980px';
+
+  // Expandir tabla completa — quitar overflow y expandir columna Nota
+  const tableWrap = document.getElementById('data-table-wrap');
+  const tbl       = document.getElementById('data-table');
+  const origTwOvf = tableWrap.style.overflow;
+  const origTwMxH = tableWrap.style.maxHeight;
+  const origTblMW = tbl.style.minWidth;
+  tableWrap.style.overflow  = 'visible';
+  tableWrap.style.maxHeight = 'none';
+  tbl.style.minWidth        = 'unset';
+  tbl.style.width           = '100%';
+  // Hacer que las celdas de nota muestren el texto completo
+  document.querySelectorAll('.note-cell').forEach(c => {
+    c.style.maxWidth    = '200px';
+    c.style.whiteSpace  = 'normal';
+    c.style.wordBreak   = 'break-word';
+  });
+
   try {
     panel.style.display              = 'none';
     if (navBar) navBar.style.display = 'none';
@@ -1580,7 +1743,7 @@ async function exportImage() {
       logging:  false
     });
     const link      = document.createElement('a');
-    link.download   = `reporte_sonoro_${new Date().getTime()}.png`;
+    link.download   = `reporte_sonoro_${formatDateForFilename()}.png`;
     link.href       = canvas.toDataURL('image/png');
     link.click();
   } catch (e) {
@@ -1589,6 +1752,16 @@ async function exportImage() {
     panel.style.display              = origPanel;
     if (navBar) navBar.style.display = origNav;
     mainLayout.style.gridTemplateColumns = origGrid;
+    captureArea.setAttribute('style', origCAStyle);
+    tableWrap.style.overflow  = origTwOvf;
+    tableWrap.style.maxHeight = origTwMxH;
+    tbl.style.minWidth        = origTblMW;
+    tbl.style.width           = '';
+    document.querySelectorAll('.note-cell').forEach(c => {
+      c.style.maxWidth   = '';
+      c.style.whiteSpace = '';
+      c.style.wordBreak  = '';
+    });
     restoreSvg();
   }
 }
@@ -1757,7 +1930,7 @@ async function exportPDF() {
       doc.text('No hay mediciones registradas.', margin, y + 10);
     }
 
-    doc.save(`reporte_sonoro_${new Date().getTime()}.pdf`);
+    doc.save(`reporte_sonoro_${formatDateForFilename()}.pdf`);
   } catch (e) {
     alert('Error al exportar PDF: ' + e.message);
   } finally {
@@ -1838,7 +2011,7 @@ async function exportExcel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `mediciones_${new Date().getTime()}.xlsx`;
+    a.download = `mediciones_${formatDateForFilename()}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   } catch (e) {
@@ -1854,15 +2027,23 @@ function shareData() {
   }
 
   const total = readings.length;
-  const avg = (readings.reduce((s, r) => s + r.db, 0) / total).toFixed(1);
-  const max = Math.max(...readings.map(r => r.db));
-  const min = Math.min(...readings.map(r => r.db));
+  const avg   = (readings.reduce((s, r) => s + r.db, 0) / total).toFixed(1);
+  const max   = Math.max(...readings.map(r => r.db));
+  const min   = Math.min(...readings.map(r => r.db));
 
-  const shareText = `🔊 Mapa de Mediciones Sonoras\n` +
-    `📊 ${total} mediciones registradas\n` +
-    `📈 Promedio: ${avg} dB | Máx: ${max} dB | Mín: ${min} dB\n` +
-    `📍 ${readings.length > 0 ? `Última: ${readings[readings.length-1].ref} (${readings[readings.length-1].db} dB)` : ''}\n` +
-    `\n#MedicionesSonoras #Acústica #MapaDeRuido`;
+  const header = `🔊 Mapa de Mediciones Sonoras\n` +
+    `📊 ${total} medición${total > 1 ? 'es' : ''} · Prom: ${avg} dB · Máx: ${max} dB · Mín: ${min} dB\n` +
+    `─────────────────────────────\n`;
+
+  const rows = readings.map((r, i) => {
+    const lat   = r.lat.toFixed(5);
+    const lng   = r.lng.toFixed(5);
+    const fecha = r.timestamp ? formatTimestamp(r.timestamp) : '—';
+    const nota  = r.note ? ` | ${r.note}` : '';
+    return `${i+1}. ${r.db} dB · ${r.ref}\n   📍 ${lat}, ${lng}\n   🕐 ${fecha}${nota}`;
+  }).join('\n');
+
+  const shareText = header + rows + '\n─────────────────────────────\n#MedicionesSonoras #Acústica';
 
   if (navigator.share) {
     navigator.share({
@@ -1872,12 +2053,264 @@ function shareData() {
     }).catch(() => {});
   } else {
     navigator.clipboard.writeText(shareText + '\n' + window.location.href).then(() => {
-      alert('✅ Resumen copiado al portapapeles. ¡Pegalo donde quieras compartirlo!');
+      showToast('✅ Datos copiados al portapapeles');
     }).catch(() => {
-      alert(shareText + '\n\n(URL: ' + window.location.href + ')');
+      alert(shareText);
     });
   }
 }
+
+// ─── PERFIL DE ELEVACIÓN (tipo Google Earth) ─────────────────────────────────
+let elevActive   = false;
+let elevPointA   = null;
+let elevPointB   = null;
+let elevMarkers  = [];
+let elevLine     = null;
+let elevChartObj = null;
+
+// Control Leaflet
+const ElevControl = L.Control.extend({
+  options: { position: 'topleft' },
+  onAdd: function() {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-elev');
+    const a = L.DomUtil.create('a', '', container);
+    a.id = 'elev-btn'; a.href = '#'; a.title = 'Perfil de elevación · marcá 2 puntos';
+    a.innerHTML = '🏔️';
+    L.DomEvent.on(a, 'click', e => { L.DomEvent.preventDefault(e); L.DomEvent.stopPropagation(e); toggleElev(); });
+    return container;
+  }
+});
+new ElevControl().addTo(map);
+
+function toggleElev() {
+  elevActive = !elevActive;
+  const btn = document.getElementById('elev-btn');
+  if (elevActive) {
+    btn.classList.add('active');
+    map.getContainer().style.cursor = 'crosshair';
+    map.doubleClickZoom.disable();
+    setElevStatus('🏔️  Clic en PUNTO A para iniciar el perfil');
+    elevPointA = elevPointB = null;
+    clearElevMarkers();
+  } else {
+    btn.classList.remove('active');
+    map.getContainer().style.cursor = '';
+    map.doubleClickZoom.enable();
+    clearElevMarkers();
+    hideElevStatus();
+  }
+}
+
+function addElevPoint(latlng) {
+  if (!elevPointA) {
+    elevPointA = latlng;
+    // Marcador A verde
+    const mA = L.marker(latlng, {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="background:#7cfc00;color:#07080f;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:bold;font-size:12px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 10px #7cfc00">A</div>',
+        iconSize: [28,28], iconAnchor: [14,14]
+      }), interactive: false
+    }).addTo(map);
+    elevMarkers.push(mA);
+    setElevStatus('🏔️  Ahora clic en PUNTO B para completar el perfil');
+  } else if (!elevPointB) {
+    elevPointB = latlng;
+    // Marcador B naranja
+    const mB = L.marker(latlng, {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="background:#ff6b35;color:#07080f;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:bold;font-size:12px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 10px #ff6b35">B</div>',
+        iconSize: [28,28], iconAnchor: [14,14]
+      }), interactive: false
+    }).addTo(map);
+    elevMarkers.push(mB);
+    // Línea entre A y B
+    elevLine = L.polyline([elevPointA, elevPointB], {
+      color: '#7cfc00', weight: 2, dashArray: '6 4', opacity: 0.8, interactive: false
+    }).addTo(map);
+    // Desactivar modo y consultar elevaciones
+    elevActive = false;
+    document.getElementById('elev-btn').classList.remove('active');
+    map.getContainer().style.cursor = '';
+    map.doubleClickZoom.enable();
+    hideElevStatus();
+    fetchElevationProfile();
+  }
+}
+
+function clearElevMarkers() {
+  elevMarkers.forEach(m => map.removeLayer(m));
+  elevMarkers = [];
+  if (elevLine) { map.removeLayer(elevLine); elevLine = null; }
+}
+
+function clearElevation() {
+  clearElevMarkers();
+  elevPointA = elevPointB = null;
+  document.getElementById('elevation-panel').style.display = 'none';
+  if (elevChartObj) { elevChartObj.destroy(); elevChartObj = null; }
+}
+
+function setElevStatus(t) {
+  const el = document.getElementById('elev-status');
+  el.textContent = t; el.style.display = 'block';
+}
+function hideElevStatus() {
+  document.getElementById('elev-status').style.display = 'none';
+}
+
+// Interpolar N puntos entre A y B
+function interpolatePoints(a, b, n) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    pts.push({ lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t });
+  }
+  return pts;
+}
+
+async function fetchElevationProfile() {
+  const panel   = document.getElementById('elevation-panel');
+  const loading = document.getElementById('elev-loading');
+  panel.style.display   = 'block';
+  loading.classList.add('visible');
+  if (elevChartObj) { elevChartObj.destroy(); elevChartObj = null; }
+
+  const SAMPLES   = 30;
+  const pts       = interpolatePoints(elevPointA, elevPointB, SAMPLES);
+  const totalDist = Math.round(elevPointA.distanceTo(elevPointB));
+
+  // Intentar obtener elevaciones con dos APIs distintas
+  let elevations = [];
+
+  // API 1: opentopodata.org — POST para evitar límite de URL
+  const tryOpenTopo = async () => {
+    const locStr = pts.map(p => `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`).join('|');
+    const res = await fetch('https://api.opentopodata.org/v1/srtm30m', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ locations: locStr })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.status !== 'OK') throw new Error(data.error || data.status);
+    return data.results.map(r => r.elevation ?? 0);
+  };
+
+  // API 2: open-elevation.com — POST como fallback
+  const tryOpenElev = async () => {
+    const locations = pts.map(p => ({ latitude: p.lat, longitude: p.lng }));
+    const res = await fetch('https://api.open-elevation.com/api/v1/lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ locations })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data.results.map(r => r.elevation ?? 0);
+  };
+
+  try {
+    elevations = await tryOpenTopo();
+  } catch (e1) {
+    try {
+      elevations = await tryOpenElev();
+    } catch (e2) {
+      loading.classList.remove('visible');
+      const isLocal = window.location.protocol === 'file:';
+      showToast(
+        isLocal
+          ? '⚠️ Las elevaciones no funcionan desde archivo local. Subí a GitHub Pages o un servidor.'
+          : '⚠️ No se pudo obtener elevaciones. Intentá de nuevo en unos segundos.',
+        6000
+      );
+      return;
+    }
+  }
+
+  loading.classList.remove('visible');
+
+  const elevMin  = Math.min(...elevations);
+  const elevMax  = Math.max(...elevations);
+  const elevDiff = (elevMax - elevMin).toFixed(0);
+  const distStep = totalDist / SAMPLES;
+  const labels   = pts.map((_, i) => Math.round(i * distStep));
+  const losData  = pts.map((_, i) => elevations[0] + (elevations[SAMPLES] - elevations[0]) * (i / SAMPLES));
+
+  document.getElementById('elev-stats').innerHTML =
+    `<span>Dist: <span class="elev-stat-val">${formatDistance(totalDist)}</span></span>
+     <span>Min: <span class="elev-stat-val">${elevMin.toFixed(0)} m</span></span>
+     <span>Máx: <span class="elev-stat-val">${elevMax.toFixed(0)} m</span></span>
+     <span>Δ: <span class="elev-stat-val">${elevDiff} m</span></span>`;
+
+  const ctx = document.getElementById('elevation-chart').getContext('2d');
+  elevChartObj = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Terreno (m snm)',
+          data: elevations,
+          fill: true,
+          backgroundColor: 'rgba(124,252,0,0.18)',
+          borderColor: '#7cfc00',
+          borderWidth: 2,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 4
+        },
+        {
+          label: 'Línea de vista A→B',
+          data: losData,
+          fill: false,
+          borderColor: 'rgba(255,107,53,0.85)',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          tension: 0,
+          pointRadius: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#c8d8f0', font: { family: 'Share Tech Mono', size: 11 }, boxWidth: 20 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(7,8,15,0.92)',
+          borderColor: '#1e2545', borderWidth: 1,
+          titleColor: '#00d4ff', bodyColor: '#c8d8f0',
+          callbacks: {
+            title: items => `Distancia: ${items[0].label} m`,
+            label: item => ` ${item.dataset.label}: ${Number(item.parsed.y).toFixed(1)} m`
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'category',
+          ticks: { color: '#4a5878', maxTicksLimit: 8, font: { family: 'Share Tech Mono', size: 10 } },
+          grid:  { color: 'rgba(30,37,69,0.5)' },
+          title: { display: true, text: 'Distancia (m)', color: '#4a5878', font: { size: 10 } }
+        },
+        y: {
+          ticks: { color: '#4a5878', font: { family: 'Share Tech Mono', size: 10 } },
+          grid:  { color: 'rgba(30,37,69,0.5)' },
+          title: { display: true, text: 'Elevación (m snm)', color: '#4a5878', font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+// Integrar clic del mapa con elevación
+// (se agrega al handler existente vía flag elevActive)
 
 // ─── INICIALIZACIÓN: cargar mediciones guardadas ─────────────────────────────
 loadFromStorage();
@@ -1890,11 +2323,7 @@ if (readings.length > 0) {
   map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
 }
 
-// Mostrar controles de borrado solo para admin
-if (isAdmin) {
-  const clearBtn = document.getElementById('clear-all-btn');
-  if (clearBtn) clearBtn.style.display = 'block';
-}
+// ─── FIN ─────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>
