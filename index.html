@@ -726,9 +726,54 @@
     .data-table .date-cell {
       min-width: 105px;
     }
-    html { font-size: 15px; } /* En celular se achica para que entre mejor */
+    html { font-size: 15px; }
     .nav-bar { gap: 8px; }
-    .nav-btn { font-size: 0.8rem; padding: 9px 14px; letter-spacing: 1px; }
+    .nav-btn  { font-size: 0.8rem; padding: 9px 14px; letter-spacing: 1px; }
+    /* En mobile ocultar Lat, Lng y Nota de la tabla para que no haga scroll */
+    .col-latlng, .col-nota { display: none !important; }
+    .data-table-wrap { overflow-x: hidden; }
+    .data-table { min-width: unset; }
+  }
+
+  /* ─── BOTONES DE REFERENCIA (fila inferior del nav) ─── */
+  .nav-btn-ref {
+    background: rgba(0,212,255,0.05);
+    border-color: rgba(0,212,255,0.35);
+    color: rgba(0,212,255,0.75);
+    font-size: 0.78rem !important;
+    padding: 7px 18px !important;
+    letter-spacing: 1.5px !important;
+  }
+  .nav-btn-ref:hover {
+    background: rgba(0,212,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 16px rgba(0,212,255,0.2);
+    transform: translateY(-1px);
+  }
+
+  /* ─── BOTÓN CANCELAR MEDICIÓN (mobile, reemplaza ESC) ─── */
+  #measure-cancel-mobile {
+    display: none;
+    position: absolute;
+    bottom: 62px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    background: rgba(7,8,15,0.93);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 8px 20px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 0 14px rgba(255,215,0,0.25);
+    text-transform: uppercase;
+  }
+  #measure-cancel-mobile:hover {
+    background: rgba(255,215,0,0.15);
   }
 
   /* ─── BARRA DE NAVEGACIÓN ─── */
@@ -843,7 +888,10 @@
     <p class="subtitle">GEOLOCALIZACIÓN DE NIVELES DE PRESIÓN SONORA · CLICK PARA REGISTRAR</p>
     <nav class="nav-bar">
       <a class="nav-btn nav-btn-punto" href="mediciones_sonido\sonido-en-punto.html">📍 Medición Puntual</a>
-      <a class="nav-btn nav-btn-prop" href="mediciones_sonido\sonido-propagacion.html">🌊 Propagación Sonora</a>
+      <a class="nav-btn nav-btn-prop"  href="mediciones_sonido\sonido-propagacion.html">🌊 Propagación Sonora</a>
+      <a class="nav-btn nav-btn-ref"   href="https://www.who.int/europe/publications/i/item/9789289053563" target="_blank" rel="noopener">🏥 OMS · Sonido y Salud</a>
+      <a class="nav-btn nav-btn-ref"   href="https://www.sauceviejo.gob.ar/images/ordenanzas/Ordenanza_Comunal_3309.pdf#page=31" target="_blank" target="_blank" rel="noopener">📍 Sauce Viejo · Ruidos</a>
+      <a class="nav-btn nav-btn-ref"   href="https://leyes-ar.com/codigo_civil_y_comercial/1973.htm" target="_blank" target="_blank" rel="noopener">⚖️ Argentina · Legislación</a>
     </nav>
   </header>
 
@@ -952,7 +1000,7 @@
         </div>
       </div>
 
-      <button class="clear-all-btn" onclick="clearAll()">🗑 Borrar todas las mediciones</button>
+      <button class="clear-all-btn" id="clear-all-btn" style="display:none" onclick="clearAll()">🗑 Borrar todas las mediciones</button>
     </div>
 
     <!-- MAPA + LEYENDA -->
@@ -960,6 +1008,7 @@
       <div class="map-wrap">
         <div id="map"></div>
         <div id="measure-status"></div>
+        <button id="measure-cancel-mobile" onclick="cancelMeasureMobile()">✕ Cancelar medición</button>
       </div>
       <!-- LEYENDA DEBAJO DEL MAPA -->
       <div class="map-legend-bottom">
@@ -989,11 +1038,11 @@
     <table class="data-table" id="data-table">
       <thead>
         <tr>
-          <th>Lat</th>
-          <th>Lng</th>
+          <th class="col-latlng">Lat</th>
+          <th class="col-latlng">Lng</th>
           <th>dB</th>
           <th>Tipo</th>
-          <th>Nota</th>
+          <th class="col-nota">Nota</th>
           <th>Fecha/Hora</th>
         </tr>
       </thead>
@@ -1010,6 +1059,11 @@ let readings = [];
 let pendingLatLng = null;
 let markers = {};
 let idCounter = 0;
+
+// ─── ADMIN (acceso vía ?admin=tuClave en la URL) ──────────────────────────────
+// Cambiá 'mapaAdmin2024' por tu clave personal antes de publicar
+const ADMIN_KEY  = 'mapaAdmin2024';
+const isAdmin    = new URLSearchParams(window.location.search).get('admin') === ADMIN_KEY;
 
 const STORAGE_KEY = 'mapa_sonido_readings';
 
@@ -1112,19 +1166,35 @@ new MeasureControl().addTo(map);
 
 function toggleMeasure() {
   measureActive = !measureActive;
-  const btn = document.getElementById('measure-btn');
+  const btn       = document.getElementById('measure-btn');
+  const cancelBtn = document.getElementById('measure-cancel-mobile');
   if (measureActive) {
     btn.classList.add('active');
     map.getContainer().style.cursor = 'crosshair';
     map.doubleClickZoom.disable();
+    if (cancelBtn) cancelBtn.style.display = 'block';
     setMeasureStatus('📏  Clic para agregar puntos · ESC para cancelar');
   } else {
     btn.classList.remove('active');
     map.getContainer().style.cursor = '';
     map.doubleClickZoom.enable();
+    if (cancelBtn) cancelBtn.style.display = 'none';
     clearMeasure();
     hideMeasureStatus();
   }
+}
+
+function cancelMeasureMobile() {
+  if (!measureActive) return;
+  measureActive = false;
+  const btn       = document.getElementById('measure-btn');
+  const cancelBtn = document.getElementById('measure-cancel-mobile');
+  if (btn)       btn.classList.remove('active');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  map.getContainer().style.cursor = '';
+  map.doubleClickZoom.enable();
+  clearMeasure();
+  hideMeasureStatus();
 }
 
 function addMeasurePoint(latlng) {
@@ -1208,8 +1278,10 @@ function hideMeasureStatus() {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && measureActive) {
     measureActive = false;
-    const btn = document.getElementById('measure-btn');
-    if (btn) btn.classList.remove('active');
+    const btn       = document.getElementById('measure-btn');
+    const cancelBtn = document.getElementById('measure-cancel-mobile');
+    if (btn)       btn.classList.remove('active');
+    if (cancelBtn) cancelBtn.style.display = 'none';
     map.getContainer().style.cursor = '';
     map.doubleClickZoom.enable();
     clearMeasure();
@@ -1314,7 +1386,7 @@ function addMarkerToMap(reading) {
     <div class="popup-ref">${reading.ref}</div>
     ${reading.note ? `<div class="popup-note">${escapeHtml(reading.note)}</div>` : ''}
     ${reading.timestamp ? `<div class="popup-time">🕐 ${formatTimestamp(reading.timestamp)}</div>` : ''}
-    <span class="popup-delete" onclick="deleteReading('${reading.id}')">✕ Eliminar punto</span>
+    ${isAdmin ? `<span class="popup-delete" onclick="deleteReading('${reading.id}')">✕ Eliminar punto</span>` : ''}
   `;
   marker.bindPopup(popupHtml);
   markers[reading.id] = marker;
@@ -1405,11 +1477,11 @@ function renderTable() {
   empty.style.display = 'none';
   body.innerHTML = readings.map(r => `
     <tr>
-      <td>${r.lat.toFixed(5)}</td>
-      <td>${r.lng.toFixed(5)}</td>
+      <td class="col-latlng">${r.lat.toFixed(5)}</td>
+      <td class="col-latlng">${r.lng.toFixed(5)}</td>
       <td class="db-cell" style="color:${r.color}">${r.db} dB</td>
       <td>${escapeHtml(r.ref)}</td>
-      <td class="note-cell">${r.note ? escapeHtml(r.note) : '—'}</td>
+      <td class="note-cell col-nota">${r.note ? escapeHtml(r.note) : '—'}</td>
       <td class="date-cell">${r.timestamp ? formatTimestamp(r.timestamp) : '—'}</td>
     </tr>
   `).join('');
@@ -1429,36 +1501,95 @@ function renderStats() {
   document.getElementById('stat-max').textContent = max.toFixed(0);
 }
 
+// ─── HELPER: convierte el SVG de medición a canvas para que html2canvas lo capture
+async function prepareMeasurementForCapture() {
+  if (measurePoints.length < 2) return () => {};
+
+  const mapEl = document.getElementById('map');
+  const svg   = mapEl.querySelector('.leaflet-overlay-pane svg');
+  if (!svg) return () => {};
+
+  const mapRect = mapEl.getBoundingClientRect();
+  const svgRect = svg.getBoundingClientRect();
+  if (svgRect.width === 0 || svgRect.height === 0) return () => {};
+
+  // Clonar y fijar dimensiones explícitas para que el serializer lo renderice bien
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width',  svgRect.width);
+  clone.setAttribute('height', svgRect.height);
+  clone.style.cssText = '';   // quitar posicionamiento del clone
+
+  const svgData = 'data:image/svg+xml;charset=utf-8,' +
+    encodeURIComponent(new XMLSerializer().serializeToString(clone));
+
+  // Dibujar en un canvas temporal
+  const cvs = document.createElement('canvas');
+  cvs.width  = svgRect.width;
+  cvs.height = svgRect.height;
+
+  await new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => { cvs.getContext('2d').drawImage(img, 0, 0); resolve(); };
+    img.onerror = resolve;    // si falla no bloqueamos la exportación
+    img.src = svgData;
+  });
+
+  // Posicionar el canvas exactamente donde está el SVG dentro del mapa
+  cvs.style.cssText = `
+    position: absolute;
+    left: ${svgRect.left - mapRect.left}px;
+    top:  ${svgRect.top  - mapRect.top}px;
+    pointer-events: none;
+    z-index: 800;
+  `;
+
+  // Ocultar SVG original y poner el canvas
+  svg.style.opacity = '0';
+  mapEl.appendChild(cvs);
+
+  // Devolver función de restauración
+  return () => {
+    svg.style.opacity = '';
+    if (cvs.parentElement) cvs.remove();
+  };
+}
+
 // ─── EXPORTACIONES ──────────────────────────────────────────────────────────
 async function exportImage() {
-  const panel = document.querySelector('.main-layout .panel');
+  const panel      = document.querySelector('.main-layout .panel');
+  const navBar     = document.querySelector('.nav-bar');
   const mainLayout = document.querySelector('.main-layout');
-  const originalPanelDisplay = panel.style.display;
-  const originalGridCols = mainLayout.style.gridTemplateColumns;
+
+  const origPanel   = panel.style.display;
+  const origNav     = navBar ? navBar.style.display : '';
+  const origGrid    = mainLayout.style.gridTemplateColumns;
+
+  const restoreSvg = await prepareMeasurementForCapture();
 
   try {
-    // Ocultamos el panel lateral (Registro de puntos / Vista del mapa / Exportar)
-    // para que no aparezca en la imagen exportada, y el mapa ocupa todo el ancho.
-    panel.style.display = 'none';
+    panel.style.display              = 'none';
+    if (navBar) navBar.style.display = 'none';
     mainLayout.style.gridTemplateColumns = '1fr';
 
-    const area = document.getElementById('capture-area');
+    const area   = document.getElementById('capture-area');
     const canvas = await html2canvas(area, {
       backgroundColor: '#07080f',
-      scale: 2,
-      useCORS: true,
-      logging: false
+      scale:    2,
+      useCORS:  true,
+      logging:  false
     });
-    const link = document.createElement('a');
-    link.download = `reporte_sonoro_${new Date().getTime()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    const link      = document.createElement('a');
+    link.download   = `reporte_sonoro_${new Date().getTime()}.png`;
+    link.href       = canvas.toDataURL('image/png');
     link.click();
   } catch (e) {
     alert('Error al exportar la imagen: ' + e.message);
   } finally {
-    // Restauramos el panel y el layout original siempre, haya o no error.
-    panel.style.display = originalPanelDisplay;
-    mainLayout.style.gridTemplateColumns = originalGridCols;
+    panel.style.display              = origPanel;
+    if (navBar) navBar.style.display = origNav;
+    mainLayout.style.gridTemplateColumns = origGrid;
+    restoreSvg();
   }
 }
 
@@ -1502,10 +1633,11 @@ async function exportPDF() {
     }
 
     // ── CAPTURA DEL MAPA ─────────────────────────────────────────────────────
-    // Se captura el mapa con los marcadores de medición sonora y,
-    // si la herramienta de medición está activa, también la línea y los puntos.
+    // Convierte el SVG de medición a canvas ANTES de html2canvas para que
+    // la línea punteada y los puntos dorados aparezcan en la imagen del PDF.
     const mapEl = document.getElementById('map');
     let mapCaptured = false;
+    const restoreSvgPdf = await prepareMeasurementForCapture();
     try {
       const canvas = await html2canvas(mapEl, {
         useCORS:         true,
@@ -1516,10 +1648,10 @@ async function exportPDF() {
       });
 
       // Escalar manteniendo aspect-ratio; max 108mm de alto
-      const aspect      = canvas.height / canvas.width;
-      const imgW        = usableW;
-      const imgH        = Math.min(imgW * aspect, 108);
-      const imgData     = canvas.toDataURL('image/jpeg', 0.92);
+      const aspect  = canvas.height / canvas.width;
+      const imgW    = usableW;
+      const imgH    = Math.min(imgW * aspect, 108);
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
 
       // Borde sutil alrededor del mapa
       doc.setDrawColor(180, 180, 180);
@@ -1533,6 +1665,8 @@ async function exportPDF() {
       doc.setTextColor(180, 60, 60);
       doc.text('(No se pudo capturar la imagen del mapa)', margin, y);
       y += 6;
+    } finally {
+      restoreSvgPdf();   // restaurar SVG original siempre
     }
 
     // ── BLOQUE DE MEDICIÓN DE DISTANCIA ──────────────────────────────────────
@@ -1754,6 +1888,12 @@ renderTable();
 if (readings.length > 0) {
   const bounds = L.latLngBounds(readings.map(r => [r.lat, r.lng]));
   map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+}
+
+// Mostrar controles de borrado solo para admin
+if (isAdmin) {
+  const clearBtn = document.getElementById('clear-all-btn');
+  if (clearBtn) clearBtn.style.display = 'block';
 }
 </script>
 </body>
