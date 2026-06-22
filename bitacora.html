@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Ruido · Sauce Viejo 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════════
+   TEMA CLARO  (por defecto)
+══════════════════════════════════════════ */
+:root,
+[data-theme="light"] {
+  --bg:        #f4f6fa;
+  --bg2:       #eaecf2;
+  --panel:     #ffffff;
+  --panel2:    #f0f2f8;
+  --border:    #d0d6e8;
+  --border2:   #b8c0d8;
+  --accent:    #0077cc;
+  --accent2:   #e05a20;
+  --accent3:   #2a8a00;
+  --gold:      #b08000;
+  --gold-bg:   rgba(176,128,0,0.09);
+  --text:      #1a1f2e;
+  --text-dim:  #6e7a99;
+  --shadow:    rgba(0,0,0,0.08);
+  --grid-line: rgba(0,0,0,0.04);
+  --week-hdr:  #f7f8fc;
+  --day-bg:    #fafbfd;
+  --input-bg:  #ffffff;
+  --select-bg: #ffffff;
+  --badge-bg:  rgba(176,128,0,0.10);
+  --badge-brd: rgba(176,128,0,0.30);
+  --saved-color: #2a8a00;
+  --today-brd: #0077cc;
+  --h1-grad:   linear-gradient(135deg, #1a1f2e 20%, #b08000 65%, #e05a20 100%);
+}
+
+/* ══════════════════════════════════════════
+   TEMA OSCURO
+══════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:        #07080f;
+  --bg2:       #0b0d1a;
+  --panel:     #0d1020;
+  --panel2:    #111528;
+  --border:    #1e2545;
+  --border2:   #2a3360;
+  --accent:    #00d4ff;
+  --accent2:   #ff6b35;
+  --accent3:   #7cfc00;
+  --gold:      #ffd700;
+  --gold-bg:   rgba(255,215,0,0.08);
+  --text:      #c8d8f0;
+  --text-dim:  #4a5878;
+  --shadow:    rgba(0,0,0,0.4);
+  --grid-line: rgba(0,212,255,0.03);
+  --week-hdr:  rgba(0,0,0,0.3);
+  --day-bg:    rgba(0,0,0,0.2);
+  --input-bg:  rgba(0,0,0,0.5);
+  --select-bg: #0d1020;
+  --badge-bg:  rgba(255,215,0,0.08);
+  --badge-brd: rgba(255,215,0,0.20);
+  --saved-color: #7cfc00;
+  --today-brd: rgba(0,212,255,0.5);
+  --h1-grad:   linear-gradient(135deg, #ffffff 30%, #ffd700 70%, #ff6b35 100%);
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 17px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Cuadrícula sutil de fondo solo en oscuro */
+[data-theme="dark"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px 60px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════
+   TOGGLE DE TEMA
+══════════════════════════════════════════ */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 18px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+  user-select: none;
+}
+.theme-toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.theme-icon { font-size: 1rem; }
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.badge {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 4px;
+  color: var(--gold);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-brd);
+  padding: 5px 16px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  background: var(--h1-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 6px 16px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.back-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ══════════════════════════════════════════
+   BARRA DE EXPORTACIÓN
+══════════════════════════════════════════ */
+.export-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.export-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.6;
+}
+.export-bar-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.btn-export {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 8px 18px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: 1px solid;
+  transition: all 0.2s;
+  background: transparent;
+}
+.btn-export-day   { border-color: var(--accent);  color: var(--accent);  }
+.btn-export-week  { border-color: var(--accent3); color: var(--accent3); }
+.btn-export-month { border-color: var(--gold);    color: var(--gold);    }
+.btn-export-all   { border-color: var(--accent2); color: var(--accent2); }
+.btn-export-day:hover   { background: rgba(0,119,204,0.10); }
+.btn-export-week:hover  { background: rgba(42,138,0,0.10);  }
+.btn-export-month:hover { background: var(--gold-bg);       }
+.btn-export-all:hover   { background: rgba(224,90,32,0.10); }
+[data-theme="dark"] .btn-export-day:hover   { background: rgba(0,212,255,0.12); }
+[data-theme="dark"] .btn-export-week:hover  { background: rgba(124,252,0,0.10); }
+[data-theme="dark"] .btn-export-all:hover   { background: rgba(255,107,53,0.10); }
+
+/* ══════════════════════════════════════════
+   BARRA DE RESPALDO JSON
+══════════════════════════════════════════ */
+.backup-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 12px 18px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.backup-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
+.backup-bar-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.backup-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.btn-backup-dl {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 8px 18px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  transition: all 0.2s;
+}
+.btn-backup-dl:hover { background: rgba(0,119,204,0.10); }
+[data-theme="dark"] .btn-backup-dl:hover { background: rgba(0,212,255,0.12); }
+
+.btn-backup-up {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 8px 18px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: 1px solid var(--accent3);
+  color: var(--accent3);
+  background: transparent;
+  transition: all 0.2s;
+}
+.btn-backup-up:hover { background: rgba(42,138,0,0.10); }
+[data-theme="dark"] .btn-backup-up:hover { background: rgba(124,252,0,0.10); }
+
+/* input file oculto */
+#import-file { display: none; }
+
+/* ══════════════════════════════════════════
+   GRILLA DE MESES
+══════════════════════════════════════════ */
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+@media(max-width: 800px) { .months-grid { grid-template-columns: repeat(3, 1fr); } }
+@media(max-width: 500px) { .months-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.month-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: 12px 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  text-align: center;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+.month-btn .month-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-right: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  vertical-align: middle;
+}
+[data-theme="dark"] .month-btn .month-dot { box-shadow: 0 0 6px var(--gold); }
+.month-btn.has-entries .month-dot { opacity: 1; }
+.month-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-bg);
+}
+.month-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-bg);
+  box-shadow: 0 0 0 2px var(--gold-bg);
+}
+
+/* ══════════════════════════════════════════
+   SECCIÓN CALENDARIO
+══════════════════════════════════════════ */
+.calendar-section { display: none; animation: slideDown 0.3s ease; }
+.calendar-section.visible { display: block; }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.calendar-month-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.calendar-month-title::before {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .calendar-month-title::before { box-shadow: 0 0 10px var(--gold); }
+
+/* ══════════════════════════════════════════
+   BLOQUE SEMANA
+══════════════════════════════════════════ */
+.week-block {
+  margin-bottom: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--week-hdr);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+  user-select: none;
+}
+.week-header:hover { background: var(--gold-bg); }
+.week-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.week-entries-count {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.64rem;
+  color: var(--text-dim);
+}
+.week-chevron {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+.week-header.open .week-chevron { transform: rotate(180deg); }
+
+.week-days {
+  display: none;
+  padding: 12px;
+  gap: 10px;
+  flex-direction: column;
+  background: var(--bg2);
+}
+.week-days.open { display: flex; }
+
+/* ══════════════════════════════════════════
+   BLOQUE DÍA
+══════════════════════════════════════════ */
+.day-block {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
+  padding: 12px;
+  background: var(--day-bg);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.day-block:hover {
+  border-color: var(--border2);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.day-block.today { border-color: var(--today-brd); }
+[data-theme="light"] .day-block.today { box-shadow: 0 0 0 2px rgba(0,119,204,0.12); }
+
+.day-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 4px;
+  text-align: center;
+}
+.day-number {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-dim);
+  transition: color 0.2s;
+}
+.day-block:hover .day-number { color: var(--text); }
+.day-block.today .day-number { color: var(--accent); }
+.day-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.day-has-entry {
+  display: block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin: 5px auto 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+[data-theme="dark"] .day-has-entry { box-shadow: 0 0 6px var(--gold); }
+.day-block.has-entry .day-has-entry { opacity: 1; }
+
+.day-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Desplegable fuente ── */
+.fuente-select {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.74rem;
+  padding: 7px 32px 7px 12px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%23b08000'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: border-color 0.2s;
+}
+[data-theme="dark"] .fuente-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%23ffd700'/%3E%3C/svg%3E");
+}
+.fuente-select:focus { border-color: var(--gold); }
+.fuente-select option { background: var(--select-bg); color: var(--text); }
+
+/* ── Textarea ── */
+.day-textarea {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  padding: 9px 12px;
+  outline: none;
+  resize: vertical;
+  min-height: 68px;
+  transition: border-color 0.2s;
+}
+.day-textarea:focus { border-color: var(--gold); }
+.day-textarea::placeholder { color: var(--text-dim); font-size: 0.8rem; }
+
+/* ── Fila guardar ── */
+.day-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.day-saved-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+  color: var(--saved-color);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.day-saved-label.show { opacity: 1; }
+
+.btn-save-day {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 6px 16px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  background: var(--gold-bg);
+  transition: all 0.2s;
+}
+.btn-save-day:hover { filter: brightness(1.1); }
+
+/* ══════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+#toast {
+  display: none;
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem;
+  padding: 10px 22px;
+  letter-spacing: 1px;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+
+/* ══════════════════════════════════════════
+   MOBILE
+══════════════════════════════════════════ */
+@media(max-width: 600px) {
+  .day-block    { grid-template-columns: 60px 1fr; }
+  .day-number   { font-size: 1.5rem; }
+  .btn-export   { padding: 7px 12px; font-size: 0.74rem; }
+  .theme-toggle { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.65rem; }
+}
+</style>
+</head>
+
+<!-- El atributo data-theme se aplica aquí y JS lo lee/escribe -->
+<body>
+
+<!-- ─── TOGGLE CLARO / OSCURO ─── -->
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTema()" title="Cambiar tema">
+  <span class="theme-icon" id="theme-icon">🌙</span>
+  <span id="theme-label">Oscuro</span>
+</button>
+
+<div class="container">
+
+  <header>
+    <div class="badge">· BITÁCORA DE REGISTRO SONORO ·</div>
+    <h1>Bitácora / Agenda de Ruido</h1>
+    <p class="subtitle">SAUCE VIEJO, SANTA FE · REGISTRO DIARIO · 2026</p>
+    <a class="back-btn" href="index.html">← Volver al Mapa</a>
+  </header>
+
+  <!-- BARRA DE EXPORTACIÓN PDF -->
+  <div class="export-bar">
+    <span class="export-bar-label">📤 Exportar PDF —</span>
+    <button class="btn-export btn-export-day"   onclick="exportarPDF('dia')">📄 Día activo</button>
+    <button class="btn-export btn-export-week"  onclick="exportarPDF('semana')">📋 Semana activa</button>
+    <button class="btn-export btn-export-month" onclick="exportarPDF('mes')">📅 Mes abierto</button>
+    <button class="btn-export btn-export-all"   onclick="exportarPDF('todo')">📦 Todo el año</button>
+  </div>
+
+  <!-- BARRA DE RESPALDO JSON -->
+  <div class="backup-bar">
+    <span class="backup-bar-label">💾 Respaldo de datos —</span>
+    <button class="btn-backup-dl" onclick="descargarRespaldo()">⬇️ Descargar JSON</button>
+    <button class="btn-backup-up" onclick="document.getElementById('import-file').click()">⬆️ Restaurar JSON</button>
+    <input type="file" id="import-file" accept=".json" onchange="restaurarRespaldo(event)">
+    <span class="backup-note">
+      Los datos de la bitácora se guardan en este navegador. Si limpiás el caché o usás otro dispositivo, descargá primero el archivo JSON como respaldo. Para recuperar la información, usá "Restaurar JSON" y seleccioná ese archivo.
+    </span>
+  </div>
+
+  <!-- GRILLA DE MESES -->
+  <div class="months-grid" id="months-grid"></div>
+
+  <!-- CONTENIDO DEL MES SELECCIONADO -->
+  <div class="calendar-section" id="calendar-section">
+    <div class="calendar-month-title" id="calendar-month-title"></div>
+    <div id="weeks-container"></div>
+  </div>
+
+</div><!-- /container -->
+
+<div id="toast"></div>
+
+<script>
+// ─── CONSTANTES ───────────────────────────────────────────────────────────────
+const YEAR = 2026;
+const MESES = [
+  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+];
+const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const FUENTES = [
+  { value: '', label: '— Fuente del ruido —' },
+  { value: 'Termoeléctrica', label: '🏭 Termoeléctrica' },
+  { value: 'Tráfico / Autos', label: '🚗 Tráfico / Autos' },
+  { value: 'Industria / Fábrica', label: '🏭 Industria / Fábrica' },
+  { value: 'Construcción', label: '🏗️ Construcción' },
+  { value: 'Bar / Boliche', label: '🎵 Bar / Boliche' },
+  { value: 'Transporte público', label: '🚌 Transporte público' },
+  { value: 'Aeropuerto / Avión', label: '✈️ Aeropuerto / Avión' },
+  { value: 'Calle / Vereda', label: '🛣️ Calle / Vereda' },
+  { value: 'Vecinos', label: '🏠 Vecinos' },
+  { value: 'Múltiples fuentes', label: '🔊 Múltiples fuentes' },
+  { value: 'Sin identificar', label: '❓ Sin identificar' },
+  { value: 'Otro', label: '✏️ Otro' },
+];
+
+const STORAGE_KEY   = 'bitacora_ruido_sv';
+const TEMA_KEY      = 'bitacora_tema';
+
+let mesActivo    = null;
+let diaActivo    = null;
+let semanaActiva = null;
+
+// ─── TEMA ─────────────────────────────────────────────────────────────────────
+function aplicarTema(tema) {
+  document.documentElement.setAttribute('data-theme', tema);
+  localStorage.setItem(TEMA_KEY, tema);
+  const icon  = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  if (tema === 'dark') {
+    icon.textContent  = '☀️';
+    label.textContent = 'Claro';
+  } else {
+    icon.textContent  = '🌙';
+    label.textContent = 'Oscuro';
+  }
+}
+
+function toggleTema() {
+  const actual = document.documentElement.getAttribute('data-theme');
+  aplicarTema(actual === 'dark' ? 'light' : 'dark');
+}
+
+// Al cargar: leer preferencia guardada (por defecto 'light')
+aplicarTema(localStorage.getItem(TEMA_KEY) || 'light');
+
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
+function guardar(mes0, dia, fuente, texto) {
+  const data = cargarTodo();
+  const key  = `${mes0}_${dia}`;
+  if (!fuente && !texto.trim()) {
+    delete data[key];
+  } else {
+    data[key] = { fuente, texto, ts: new Date().toISOString() };
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function cargarTodo() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function getEntry(mes0, dia) {
+  return cargarTodo()[`${mes0}_${dia}`] || null;
+}
+
+// ─── UTILIDADES ───────────────────────────────────────────────────────────────
+function diasEnMes(mes0) { return new Date(YEAR, mes0 + 1, 0).getDate(); }
+function diaSemana(mes0, dia) { return new Date(YEAR, mes0, dia).getDay(); }
+
+function showToast(msg, ms = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, ms);
+}
+
+function hoy() {
+  const d = new Date();
+  return { mes: d.getMonth(), dia: d.getDate(), year: d.getFullYear() };
+}
+
+// ─── RENDER MESES ─────────────────────────────────────────────────────────────
+function renderMeses() {
+  const grid = document.getElementById('months-grid');
+  const data = cargarTodo();
+  grid.innerHTML = '';
+  MESES.forEach((nombre, m) => {
+    const tieneEntradas = Object.keys(data).some(k => k.startsWith(m + '_'));
+    const btn = document.createElement('button');
+    btn.className = 'month-btn'
+      + (tieneEntradas ? ' has-entries' : '')
+      + (mesActivo === m ? ' active' : '');
+    btn.innerHTML = `<span class="month-dot"></span>${nombre}`;
+    btn.onclick = () => abrirMes(m);
+    grid.appendChild(btn);
+  });
+}
+
+// ─── ABRIR MES ────────────────────────────────────────────────────────────────
+function abrirMes(m) {
+  mesActivo = m;
+  renderMeses();
+  const section = document.getElementById('calendar-section');
+  section.classList.add('visible');
+  document.getElementById('calendar-month-title').textContent = MESES[m] + ' ' + YEAR;
+
+  const container = document.getElementById('weeks-container');
+  container.innerHTML = '';
+
+  const totalDias = diasEnMes(m);
+  const primerDia = diaSemana(m, 1);
+
+  let semanas = [], semanaActual = [];
+  for (let i = 0; i < primerDia; i++) semanaActual.push(null);
+  for (let d = 1; d <= totalDias; d++) {
+    semanaActual.push(d);
+    if (semanaActual.length === 7) { semanas.push(semanaActual); semanaActual = []; }
+  }
+  if (semanaActual.length) {
+    while (semanaActual.length < 7) semanaActual.push(null);
+    semanas.push(semanaActual);
+  }
+
+  semanas.forEach((semana, wIdx) => {
+    const diasReales = semana.filter(d => d !== null);
+    if (!diasReales.length) return;
+
+    const primerReal  = diasReales[0];
+    const ultimoReal  = diasReales[diasReales.length - 1];
+    const data        = cargarTodo();
+    const entrSemana  = diasReales.filter(d => data[`${m}_${d}`]).length;
+
+    const wBlock = document.createElement('div');
+    wBlock.className = 'week-block';
+    wBlock.id = `week-${m}-${wIdx}`;
+    wBlock.innerHTML = `
+      <div class="week-header" id="wh-${m}-${wIdx}" onclick="toggleSemana(${m},${wIdx})">
+        <span class="week-label">Semana del ${primerReal} al ${ultimoReal} de ${MESES[m]}</span>
+        <span class="week-entries-count">${entrSemana > 0 ? entrSemana + ' entrada' + (entrSemana > 1 ? 's' : '') : 'sin registros'}</span>
+        <span class="week-chevron">▼</span>
+      </div>
+      <div class="week-days" id="wd-${m}-${wIdx}">
+        ${semana.map(d => d ? renderDia(m, d) : '').join('')}
+      </div>`;
+    container.appendChild(wBlock);
+  });
+
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Abrir la semana de hoy si corresponde
+  const h = hoy();
+  if (h.year === YEAR && h.mes === m) {
+    semanas.forEach((semana, wIdx) => {
+      if (semana.includes(h.dia)) {
+        setTimeout(() => toggleSemana(m, wIdx, true), 350);
+      }
+    });
+  }
+}
+
+// ─── RENDER DÍA ───────────────────────────────────────────────────────────────
+function renderDia(mes0, dia) {
+  const h           = hoy();
+  const entry       = getEntry(mes0, dia);
+  const esHoy       = (h.year === YEAR && h.mes === mes0 && h.dia === dia);
+  const nombreDia   = DIAS_SEMANA[diaSemana(mes0, dia)];
+  const tieneEntrada = !!entry;
+
+  const fuenteOpts = FUENTES.map(f =>
+    `<option value="${f.value}"${entry && entry.fuente === f.value ? ' selected' : ''}>${f.label}</option>`
+  ).join('');
+
+  return `
+  <div class="day-block${esHoy ? ' today' : ''}${tieneEntrada ? ' has-entry' : ''}" id="day-${mes0}-${dia}">
+    <div class="day-info">
+      <span class="day-number">${dia}</span>
+      <span class="day-name">${nombreDia}</span>
+      <span class="day-has-entry"></span>
+    </div>
+    <div class="day-content">
+      <select class="fuente-select" id="fuente-${mes0}-${dia}" onchange="autoguardar(${mes0},${dia})">
+        ${fuenteOpts}
+      </select>
+      <textarea class="day-textarea"
+        id="text-${mes0}-${dia}"
+        placeholder="Describí la situación del ruido en este día… (horario, intensidad, duración, impacto)"
+        oninput="autoguardar(${mes0},${dia})"
+      >${entry ? entry.texto : ''}</textarea>
+      <div class="day-save-row">
+        <span class="day-saved-label" id="saved-${mes0}-${dia}">✓ Guardado</span>
+        <button class="btn-save-day" onclick="guardarDia(${mes0},${dia})">💾 Guardar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── TOGGLE SEMANA ────────────────────────────────────────────────────────────
+function toggleSemana(m, wIdx, forceOpen = false) {
+  const header = document.getElementById(`wh-${m}-${wIdx}`);
+  const days   = document.getElementById(`wd-${m}-${wIdx}`);
+  if (!header || !days) return;
+  const isOpen = days.classList.contains('open');
+  if (isOpen && !forceOpen) {
+    days.classList.remove('open');
+    header.classList.remove('open');
+  } else {
+    days.classList.add('open');
+    header.classList.add('open');
+    semanaActiva = { mes: m, weekIdx: wIdx };
+    setTimeout(() => {
+      document.getElementById(`week-${m}-${wIdx}`)
+        .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
+}
+
+// ─── GUARDAR ──────────────────────────────────────────────────────────────────
+const autoguardarTimers = {};
+
+function autoguardar(mes0, dia) {
+  clearTimeout(autoguardarTimers[`${mes0}_${dia}`]);
+  autoguardarTimers[`${mes0}_${dia}`] = setTimeout(() => guardarDia(mes0, dia, true), 900);
+}
+
+function guardarDia(mes0, dia, silencioso = false) {
+  const fuente = document.getElementById(`fuente-${mes0}-${dia}`)?.value || '';
+  const texto  = document.getElementById(`text-${mes0}-${dia}`)?.value  || '';
+  guardar(mes0, dia, fuente, texto);
+
+  const bloque = document.getElementById(`day-${mes0}-${dia}`);
+  if (bloque) {
+    bloque.classList.toggle('has-entry', !!(fuente || texto.trim()));
+  }
+
+  const label = document.getElementById(`saved-${mes0}-${dia}`);
+  if (label) {
+    label.classList.add('show');
+    setTimeout(() => label.classList.remove('show'), 2500);
+  }
+
+  if (!silencioso) showToast('✓ Entrada guardada');
+  renderMeses();
+}
+
+// ─── EXPORTAR PDF ─────────────────────────────────────────────────────────────
+function exportarPDF(tipo) {
+  if (typeof window.jspdf === 'undefined') {
+    showToast('⚠️ Cargando librería, reintentá en un momento', 4000); return;
+  }
+  const { jsPDF } = window.jspdf;
+  let entradas = [];
+  const h = hoy();
+
+  if (tipo === 'dia') {
+    const mes   = mesActivo !== null ? mesActivo : h.mes;
+    const dia   = diaActivo ? diaActivo.dia : h.dia;
+    const entry = getEntry(mes, dia);
+    if (!entry || (!entry.fuente && !entry.texto.trim())) {
+      showToast('⚠️ No hay entrada para el día activo'); return;
+    }
+    entradas.push({ mes, dia, entry });
+  }
+  else if (tipo === 'semana') {
+    if (!semanaActiva) { showToast('⚠️ Primero abrí una semana'); return; }
+    getSemana(semanaActiva.mes, semanaActiva.weekIdx).forEach(d => {
+      if (d) {
+        const entry = getEntry(semanaActiva.mes, d);
+        if (entry && (entry.fuente || entry.texto.trim()))
+          entradas.push({ mes: semanaActiva.mes, dia: d, entry });
+      }
+    });
+    if (!entradas.length) { showToast('⚠️ Sin entradas en la semana activa'); return; }
+  }
+  else if (tipo === 'mes') {
+    if (mesActivo === null) { showToast('⚠️ Primero abrí un mes'); return; }
+    for (let d = 1; d <= diasEnMes(mesActivo); d++) {
+      const entry = getEntry(mesActivo, d);
+      if (entry && (entry.fuente || entry.texto.trim()))
+        entradas.push({ mes: mesActivo, dia: d, entry });
+    }
+    if (!entradas.length) { showToast('⚠️ Sin entradas en el mes'); return; }
+  }
+  else if (tipo === 'todo') {
+    MESES.forEach((_, m) => {
+      for (let d = 1; d <= diasEnMes(m); d++) {
+        const entry = getEntry(m, d);
+        if (entry && (entry.fuente || entry.texto.trim()))
+          entradas.push({ mes: m, dia: d, entry });
+      }
+    });
+    if (!entradas.length) { showToast('⚠️ No hay entradas en la bitácora'); return; }
+  }
+
+  const doc     = new jsPDF('portrait', 'mm', 'a4');
+  const marginX = 18;
+  let y = 22;
+
+  // Encabezado (fondo blanco, texto sobrio para el PDF)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(20, 30, 60);
+  doc.text('Bitácora de Ruido · Sauce Viejo', marginX, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 110, 140);
+  const periodoLabel =
+    tipo === 'dia'    ? 'Día activo' :
+    tipo === 'semana' ? 'Semana activa' :
+    tipo === 'mes'    ? MESES[mesActivo] + ' ' + YEAR :
+                        'Año completo ' + YEAR;
+  doc.text(`Período: ${periodoLabel}   ·   Generado: ${new Date().toLocaleString('es-AR')}`, marginX, y);
+  y += 4;
+  doc.setDrawColor(180, 160, 0);
+  doc.setLineWidth(0.5);
+  doc.line(marginX, y, 210 - marginX, y);
+  y += 10;
+
+  entradas.forEach(({ mes, dia, entry }) => {
+    if (y > 265) { doc.addPage(); y = 22; }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(20, 30, 60);
+    doc.text(`${dia} de ${MESES[mes]} de ${YEAR} — ${DIAS_SEMANA[diaSemana(mes, dia)]}`, marginX, y);
+    y += 6;
+
+    if (entry.fuente) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 100, 180);
+      doc.text('Fuente: ' + entry.fuente, marginX, y);
+      y += 5;
+    }
+
+    if (entry.texto && entry.texto.trim()) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(40, 50, 70);
+      const lines = doc.splitTextToSize(entry.texto.trim(), 210 - marginX * 2);
+      lines.forEach(line => {
+        if (y > 270) { doc.addPage(); y = 22; }
+        doc.text(line, marginX, y);
+        y += 5;
+      });
+    }
+
+    y += 3;
+    doc.setDrawColor(210, 215, 230);
+    doc.setLineWidth(0.2);
+    doc.line(marginX, y, 210 - marginX, y);
+    y += 7;
+  });
+
+  // Pie de página
+  const total = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 160, 180);
+    doc.text(`Bitácora Ruido Sauce Viejo ${YEAR}  ·  Pág ${i}/${total}`, 105, 292, { align: 'center' });
+  }
+
+  const ts  = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  doc.save(`bitacora_ruido_${tipo}_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}.pdf`);
+  showToast('✓ PDF generado');
+}
+
+// ─── HELPER SEMANA ────────────────────────────────────────────────────────────
+function getSemana(mes0, weekIdx) {
+  const primerDia = diaSemana(mes0, 1);
+  let semanas = [], semanaActual = [];
+  for (let i = 0; i < primerDia; i++) semanaActual.push(null);
+  for (let d = 1; d <= diasEnMes(mes0); d++) {
+    semanaActual.push(d);
+    if (semanaActual.length === 7) { semanas.push(semanaActual); semanaActual = []; }
+  }
+  if (semanaActual.length) {
+    while (semanaActual.length < 7) semanaActual.push(null);
+    semanas.push(semanaActual);
+  }
+  return semanas[weekIdx] || [];
+}
+
+// ─── RESPALDO JSON ────────────────────────────────────────────────────────────
+function descargarRespaldo() {
+  const data = cargarTodo();
+  if (!Object.keys(data).length) {
+    showToast('⚠️ No hay entradas para respaldar'); return;
+  }
+  const payload = {
+    app:     'bitacora_ruido_sauceviejo',
+    version: 1,
+    año:     YEAR,
+    exportado: new Date().toISOString(),
+    entradas: data
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const ts   = new Date();
+  const pad  = n => String(n).padStart(2, '0');
+  a.href     = url;
+  a.download = `bitacora_ruido_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Respaldo descargado');
+}
+
+function restaurarRespaldo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      // Aceptar tanto el formato envuelto como un JSON plano de entradas
+      const entradas = payload.entradas || payload;
+      if (typeof entradas !== 'object' || Array.isArray(entradas)) {
+        showToast('⚠️ Archivo inválido'); return;
+      }
+      // Confirmar antes de sobreescribir
+      const total = Object.keys(entradas).length;
+      if (!confirm(`¿Restaurar ${total} entrada${total !== 1 ? 's' : ''} desde el archivo?\nEsto reemplazará los datos actuales en el navegador.`)) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entradas));
+      showToast(`✓ ${total} entrada${total !== 1 ? 's' : ''} restaurada${total !== 1 ? 's' : ''}`);
+      // Refrescar la vista
+      renderMeses();
+      if (mesActivo !== null) abrirMes(mesActivo);
+    } catch {
+      showToast('⚠️ No se pudo leer el archivo');
+    }
+    // Limpiar el input para que se pueda volver a usar
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderMeses();
+const hoyData = hoy();
+if (hoyData.year === YEAR) abrirMes(hoyData.mes);
+</script>
+</body>
+</html>

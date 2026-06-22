@@ -29,8 +29,7 @@
 
 <!-- Bibliotecas para exportación -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -363,7 +362,7 @@
   }
   .export-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 6px;
   }
   .btn-export {
@@ -855,6 +854,64 @@
     transform: translateY(-1px);
   }
 
+  /* ─── BOTÓN BITÁCORA ─── */
+  .nav-btn-bitacora {
+    background: rgba(255,215,0,0.07);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .nav-btn-bitacora:hover {
+    box-shadow: 0 0 22px rgba(255,215,0,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ─── BOTÓN BITÁCORA FLOTANTE (pie de página) ─── */
+  .bitacora-float-btn {
+    display: block;
+    width: fit-content;
+    margin: 40px auto 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    padding: 13px 40px;
+    cursor: pointer;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--gold);
+    background: rgba(255,215,0,0.07);
+    color: var(--gold);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .bitacora-float-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .bitacora-float-btn:hover {
+    box-shadow: 0 0 30px rgba(255,215,0,0.25), 0 0 60px rgba(255,215,0,0.1);
+    transform: translateY(-2px);
+    letter-spacing: 4px;
+  }
+  .bitacora-float-btn:hover::before { opacity: 0.05; }
+  .bitacora-float-btn span {
+    position: relative;
+    z-index: 1;
+  }
+  .bitacora-footer-note {
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+  }
+
   /* ─── HERRAMIENTA DE MEDICIÓN ─── */
   .leaflet-control-measure a {
     background: var(--panel) !important;
@@ -1003,6 +1060,7 @@
       <a class="nav-btn nav-btn-ref"   href="https://www.who.int/europe/publications/i/item/9789289053563" target="_blank" rel="noopener">🏥 OMS · Sonido y Salud</a>
       <a class="nav-btn nav-btn-ref"   href="PDFs/Ordenanza_Comunal_3233-16.pdf" target="_blank" target="_blank" rel="noopener">📍 Sauce Viejo · Ruidos</a>
       <a class="nav-btn nav-btn-ref"   href="https://leyes-ar.com/codigo_civil_y_comercial/1973.htm" target="_blank" target="_blank" rel="noopener">⚖️ Argentina · Legislación</a>
+      <a class="nav-btn nav-btn-bitacora" href="bitacora.html">📓 Bitácora / Agenda</a>
     </nav>
   </header>
 
@@ -1105,7 +1163,6 @@
         <span class="export-label">📤 Exportar / Compartir</span>
         <div class="export-grid">
           <button class="btn-export" onclick="exportImage()">🖼️ Imagen</button>
-          <button class="btn-export pdf" onclick="exportPDF()">📄 PDF</button>
           <button class="btn-export excel" onclick="exportExcel()">📊 Excel</button>
           <button class="btn-export share" onclick="shareData()">🔗 Compartir</button>
         </div>
@@ -1177,6 +1234,14 @@
   </div>
 
 </div><!-- /container -->
+
+<!-- BOTÓN BITÁCORA PIE DE PÁGINA -->
+<div class="container" style="padding-top:0; padding-bottom:20px; position:relative; z-index:1;">
+  <a class="bitacora-float-btn" href="bitacora.html">
+    <span>📓 &nbsp; Bitácora / Agenda de Ruido</span>
+  </a>
+  <p class="bitacora-footer-note">Registro diario · semanas · meses · exportar por período</p>
+</div>
 
 <!-- TOAST -->
 <div id="toast"></div>
