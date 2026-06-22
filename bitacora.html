@@ -473,16 +473,13 @@ h1 {
 .week-days.open { display: flex; }
 
 /* ══════════════════════════════════════════
-   BLOQUE DÍA
+   BLOQUE DÍA (DESPLEGABLE)
 ══════════════════════════════════════════ */
 .day-block {
-  display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 12px;
-  padding: 12px;
   background: var(--day-bg);
   border: 1px solid var(--border);
   transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
 }
 .day-block:hover {
   border-color: var(--border2);
@@ -491,12 +488,24 @@ h1 {
 .day-block.today { border-color: var(--today-brd); }
 [data-theme="light"] .day-block.today { box-shadow: 0 0 0 2px rgba(0,119,204,0.12); }
 
+.day-header {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  align-items: center;
+  user-select: none;
+  transition: background 0.2s;
+}
+.day-header:hover { background: var(--gold-bg); }
+.day-header.today .day-number { color: var(--accent); }
+
 .day-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: 4px;
+  justify-content: center;
   text-align: center;
 }
 .day-number {
@@ -507,8 +516,6 @@ h1 {
   color: var(--text-dim);
   transition: color 0.2s;
 }
-.day-block:hover .day-number { color: var(--text); }
-.day-block.today .day-number { color: var(--accent); }
 .day-name {
   font-family: 'Share Tech Mono', monospace;
   font-size: 0.6rem;
@@ -529,10 +536,48 @@ h1 {
 [data-theme="dark"] .day-has-entry { box-shadow: 0 0 6px var(--gold); }
 .day-block.has-entry .day-has-entry { opacity: 1; }
 
-.day-content {
-  display: flex;
+.day-summary {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.day-chevron {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+  padding: 0 8px;
+}
+.day-header.open .day-chevron { transform: rotate(180deg); }
+
+.day-horas {
+  display: none;
+  padding: 0 12px 12px 12px;
+  gap: 6px;
   flex-direction: column;
+  background: var(--bg2);
+}
+.day-horas.open { display: flex; }
+
+/* ── Hora fila ── */
+.hora-fila {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
   gap: 8px;
+  align-items: start;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.hora-fila:last-child { border-bottom: none; }
+.hora-fila-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  padding-top: 6px;
+  font-weight: 600;
 }
 
 /* ── Desplegable fuente ── */
@@ -543,13 +588,13 @@ h1 {
   color: var(--text);
   font-family: 'Share Tech Mono', monospace;
   font-size: 0.74rem;
-  padding: 7px 32px 7px 12px;
+  padding: 5px 28px 5px 10px;
   outline: none;
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%23b08000'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
+  background-position: right 8px center;
   transition: border-color 0.2s;
 }
 [data-theme="dark"] .fuente-select {
@@ -558,23 +603,23 @@ h1 {
 .fuente-select:focus { border-color: var(--gold); }
 .fuente-select option { background: var(--select-bg); color: var(--text); }
 
-/* ── Textarea ── */
-.day-textarea {
+/* ── Textarea hora ── */
+.hora-textarea {
   width: 100%;
   background: var(--input-bg);
   border: 1px solid var(--border);
   color: var(--text);
   font-family: 'Exo 2', sans-serif;
-  font-size: 0.88rem;
-  line-height: 1.55;
-  padding: 9px 12px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  padding: 5px 10px;
   outline: none;
   resize: vertical;
-  min-height: 68px;
+  min-height: 40px;
   transition: border-color 0.2s;
 }
-.day-textarea:focus { border-color: var(--gold); }
-.day-textarea::placeholder { color: var(--text-dim); font-size: 0.8rem; }
+.hora-textarea:focus { border-color: var(--gold); }
+.hora-textarea::placeholder { color: var(--text-dim); font-size: 0.7rem; }
 
 /* ── Fila guardar ── */
 .day-save-row {
@@ -582,6 +627,9 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
 }
 .day-saved-label {
   font-family: 'Share Tech Mono', monospace;
@@ -607,6 +655,21 @@ h1 {
   transition: all 0.2s;
 }
 .btn-save-day:hover { filter: brightness(1.1); }
+
+.btn-delete-all {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 6px 16px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
+  background: transparent;
+  transition: all 0.2s;
+}
+.btn-delete-all:hover { background: rgba(224,90,32,0.15); }
 
 /* ══════════════════════════════════════════
    SCROLLBAR
@@ -640,15 +703,17 @@ h1 {
    MOBILE
 ══════════════════════════════════════════ */
 @media(max-width: 600px) {
-  .day-block    { grid-template-columns: 60px 1fr; }
-  .day-number   { font-size: 1.5rem; }
-  .btn-export   { padding: 7px 12px; font-size: 0.74rem; }
+  .day-header { grid-template-columns: 60px 1fr auto; }
+  .day-number { font-size: 1.5rem; }
+  .btn-export { padding: 7px 12px; font-size: 0.74rem; }
   .theme-toggle { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.65rem; }
+  .hora-fila { grid-template-columns: 50px 1fr; gap: 4px; }
+  .hora-fila .fuente-select { grid-column: 1 / -1; }
+  .day-summary { display: none; }
 }
 </style>
 </head>
 
-<!-- El atributo data-theme se aplica aquí y JS lo lee/escribe -->
 <body>
 
 <!-- ─── TOGGLE CLARO / OSCURO ─── -->
@@ -684,6 +749,7 @@ h1 {
     <span class="backup-note">
       Los datos de la bitácora se guardan en este navegador. Si limpiás el caché o usás otro dispositivo, descargá primero el archivo JSON como respaldo. Para recuperar la información, usá "Restaurar JSON" y seleccioná ese archivo.
     </span>
+    <button class="btn-delete-all" onclick="borrarTodosLosDatos()">🗑️ Borrar todos los datos</button>
   </div>
 
   <!-- GRILLA DE MESES -->
@@ -708,7 +774,7 @@ const MESES = [
 ];
 const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const FUENTES = [
-  { value: '', label: '— Fuente del ruido —' },
+  { value: '', label: '— Fuente —' },
   { value: 'Termoeléctrica', label: '🏭 Termoeléctrica' },
   { value: 'Tráfico / Autos', label: '🚗 Tráfico / Autos' },
   { value: 'Industria / Fábrica', label: '🏭 Industria / Fábrica' },
@@ -729,6 +795,7 @@ const TEMA_KEY      = 'bitacora_tema';
 let mesActivo    = null;
 let diaActivo    = null;
 let semanaActiva = null;
+let diaAbierto   = null; // { mes, dia } para controlar qué día está abierto
 
 // ─── TEMA ─────────────────────────────────────────────────────────────────────
 function aplicarTema(tema) {
@@ -750,17 +817,16 @@ function toggleTema() {
   aplicarTema(actual === 'dark' ? 'light' : 'dark');
 }
 
-// Al cargar: leer preferencia guardada (por defecto 'light')
 aplicarTema(localStorage.getItem(TEMA_KEY) || 'light');
 
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
-function guardar(mes0, dia, fuente, texto) {
+function guardar(mes0, dia, hora, fuente, texto) {
   const data = cargarTodo();
-  const key  = `${mes0}_${dia}`;
+  const key  = `${mes0}_${dia}_${hora}`;
   if (!fuente && !texto.trim()) {
     delete data[key];
   } else {
-    data[key] = { fuente, texto, ts: new Date().toISOString() };
+    data[key] = { hora, fuente, texto, ts: new Date().toISOString() };
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -770,8 +836,42 @@ function cargarTodo() {
   catch { return {}; }
 }
 
-function getEntry(mes0, dia) {
-  return cargarTodo()[`${mes0}_${dia}`] || null;
+function getEntry(mes0, dia, hora) {
+  return cargarTodo()[`${mes0}_${dia}_${hora}`] || null;
+}
+
+function getEntriesForDay(mes0, dia) {
+  const data = cargarTodo();
+  const prefix = `${mes0}_${dia}_`;
+  const result = {};
+  Object.keys(data).forEach(key => {
+    if (key.startsWith(prefix)) {
+      const hora = key.substring(prefix.length);
+      result[hora] = data[key];
+    }
+  });
+  return result;
+}
+
+function getDaySummary(mes0, dia) {
+  const entries = getEntriesForDay(mes0, dia);
+  const horas = Object.keys(entries);
+  if (!horas.length) return '';
+  const resumen = horas.map(h => {
+    const e = entries[h];
+    const texto = e.texto ? e.texto.substring(0, 30) : '';
+    const fuente = e.fuente ? ` [${e.fuente}]` : '';
+    return `${h}${fuente}${texto ? ': ' + texto : ''}`;
+  }).join(' | ');
+  return resumen.length > 80 ? resumen.substring(0, 80) + '…' : resumen;
+}
+
+function borrarTodosLosDatos() {
+  if (!confirm('⚠️ ¿Estás seguro? Esto borrará TODAS las entradas de la bitácora. Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  showToast('🗑️ Todos los datos han sido eliminados');
+  renderMeses();
+  if (mesActivo !== null) abrirMes(mesActivo);
 }
 
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
@@ -811,6 +911,7 @@ function renderMeses() {
 // ─── ABRIR MES ────────────────────────────────────────────────────────────────
 function abrirMes(m) {
   mesActivo = m;
+  diaAbierto = null;
   renderMeses();
   const section = document.getElementById('calendar-section');
   section.classList.add('visible');
@@ -840,7 +941,7 @@ function abrirMes(m) {
     const primerReal  = diasReales[0];
     const ultimoReal  = diasReales[diasReales.length - 1];
     const data        = cargarTodo();
-    const entrSemana  = diasReales.filter(d => data[`${m}_${d}`]).length;
+    const entrSemana  = diasReales.filter(d => Object.keys(data).some(k => k.startsWith(`${m}_${d}_`))).length;
 
     const wBlock = document.createElement('div');
     wBlock.className = 'week-block';
@@ -859,51 +960,100 @@ function abrirMes(m) {
 
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // Abrir la semana de hoy si corresponde
   const h = hoy();
   if (h.year === YEAR && h.mes === m) {
     semanas.forEach((semana, wIdx) => {
       if (semana.includes(h.dia)) {
         setTimeout(() => toggleSemana(m, wIdx, true), 350);
+        // Abrir el día de hoy automáticamente
+        setTimeout(() => toggleDia(m, h.dia, true), 450);
       }
     });
   }
 }
 
-// ─── RENDER DÍA ───────────────────────────────────────────────────────────────
+// ─── RENDER DÍA (DESPLEGABLE) ─────────────────────────────────────────────────
 function renderDia(mes0, dia) {
   const h           = hoy();
-  const entry       = getEntry(mes0, dia);
   const esHoy       = (h.year === YEAR && h.mes === mes0 && h.dia === dia);
   const nombreDia   = DIAS_SEMANA[diaSemana(mes0, dia)];
-  const tieneEntrada = !!entry;
+  const entries     = getEntriesForDay(mes0, dia);
+  const tieneEntrada = Object.keys(entries).length > 0;
+  const summary     = getDaySummary(mes0, dia);
+  const isOpen      = diaAbierto && diaAbierto.mes === mes0 && diaAbierto.dia === dia;
 
-  const fuenteOpts = FUENTES.map(f =>
-    `<option value="${f.value}"${entry && entry.fuente === f.value ? ' selected' : ''}>${f.label}</option>`
-  ).join('');
+  // Generar filas para cada hora (00:00 a 23:00)
+  let filas = '';
+  for (let hora = 0; hora < 24; hora++) {
+    const horaStr = String(hora).padStart(2, '0') + ':00';
+    const entry = entries[horaStr] || null;
+    const fuenteOpts = FUENTES.map(f =>
+      `<option value="${f.value}"${entry && entry.fuente === f.value ? ' selected' : ''}>${f.label}</option>`
+    ).join('');
+    filas += `
+      <div class="hora-fila" id="fila-${mes0}-${dia}-${horaStr}">
+        <span class="hora-fila-label">${horaStr}</span>
+        <select class="fuente-select" id="fuente-${mes0}-${dia}-${horaStr}" onchange="autoguardar(${mes0},${dia},'${horaStr}')">
+          ${fuenteOpts}
+        </select>
+        <textarea class="hora-textarea"
+          id="text-${mes0}-${dia}-${horaStr}"
+          placeholder="Descripción del ruido a las ${horaStr}…"
+          oninput="autoguardar(${mes0},${dia},'${horaStr}')"
+        >${entry ? entry.texto : ''}</textarea>
+      </div>`;
+  }
 
   return `
   <div class="day-block${esHoy ? ' today' : ''}${tieneEntrada ? ' has-entry' : ''}" id="day-${mes0}-${dia}">
-    <div class="day-info">
-      <span class="day-number">${dia}</span>
-      <span class="day-name">${nombreDia}</span>
-      <span class="day-has-entry"></span>
+    <div class="day-header${isOpen ? ' open' : ''}${esHoy ? ' today' : ''}" onclick="toggleDia(${mes0},${dia})" id="dh-${mes0}-${dia}">
+      <div class="day-info">
+        <span class="day-number">${dia}</span>
+        <span class="day-name">${nombreDia}</span>
+        <span class="day-has-entry"></span>
+      </div>
+      <div class="day-summary">${summary || 'Sin registros'}</div>
+      <span class="day-chevron">${isOpen ? '▲' : '▼'}</span>
     </div>
-    <div class="day-content">
-      <select class="fuente-select" id="fuente-${mes0}-${dia}" onchange="autoguardar(${mes0},${dia})">
-        ${fuenteOpts}
-      </select>
-      <textarea class="day-textarea"
-        id="text-${mes0}-${dia}"
-        placeholder="Describí la situación del ruido en este día… (horario, intensidad, duración, impacto)"
-        oninput="autoguardar(${mes0},${dia})"
-      >${entry ? entry.texto : ''}</textarea>
+    <div class="day-horas${isOpen ? ' open' : ''}" id="dhors-${mes0}-${dia}">
+      ${filas}
       <div class="day-save-row">
         <span class="day-saved-label" id="saved-${mes0}-${dia}">✓ Guardado</span>
-        <button class="btn-save-day" onclick="guardarDia(${mes0},${dia})">💾 Guardar</button>
+        <button class="btn-save-day" onclick="event.stopPropagation(); guardarDiaCompleto(${mes0},${dia})">💾 Guardar todo</button>
       </div>
     </div>
   </div>`;
+}
+
+// ─── TOGGLE DÍA ───────────────────────────────────────────────────────────────
+function toggleDia(mes0, dia, forceOpen = false) {
+  const header = document.getElementById(`dh-${mes0}-${dia}`);
+  const horas  = document.getElementById(`dhors-${mes0}-${dia}`);
+  if (!header || !horas) return;
+
+  const isOpen = horas.classList.contains('open');
+
+  // Si hay otro día abierto, lo cerramos
+  if (diaAbierto && (diaAbierto.mes !== mes0 || diaAbierto.dia !== dia)) {
+    const prevHeader = document.getElementById(`dh-${diaAbierto.mes}-${diaAbierto.dia}`);
+    const prevHoras  = document.getElementById(`dhors-${diaAbierto.mes}-${diaAbierto.dia}`);
+    if (prevHeader) prevHeader.classList.remove('open');
+    if (prevHoras) prevHoras.classList.remove('open');
+  }
+
+  if (isOpen && !forceOpen) {
+    horas.classList.remove('open');
+    header.classList.remove('open');
+    diaAbierto = null;
+  } else {
+    horas.classList.add('open');
+    header.classList.add('open');
+    diaAbierto = { mes: mes0, dia: dia };
+    setTimeout(() => {
+      document.getElementById(`day-${mes0}-${dia}`)
+        .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
 }
 
 // ─── TOGGLE SEMANA ────────────────────────────────────────────────────────────
@@ -929,28 +1079,57 @@ function toggleSemana(m, wIdx, forceOpen = false) {
 // ─── GUARDAR ──────────────────────────────────────────────────────────────────
 const autoguardarTimers = {};
 
-function autoguardar(mes0, dia) {
-  clearTimeout(autoguardarTimers[`${mes0}_${dia}`]);
-  autoguardarTimers[`${mes0}_${dia}`] = setTimeout(() => guardarDia(mes0, dia, true), 900);
+function autoguardar(mes0, dia, hora) {
+  const key = `${mes0}_${dia}_${hora}`;
+  clearTimeout(autoguardarTimers[key]);
+  autoguardarTimers[key] = setTimeout(() => guardarHora(mes0, dia, hora, true), 700);
 }
 
-function guardarDia(mes0, dia, silencioso = false) {
-  const fuente = document.getElementById(`fuente-${mes0}-${dia}`)?.value || '';
-  const texto  = document.getElementById(`text-${mes0}-${dia}`)?.value  || '';
-  guardar(mes0, dia, fuente, texto);
+function guardarHora(mes0, dia, hora, silencioso = false) {
+  const fuente = document.getElementById(`fuente-${mes0}-${dia}-${hora}`)?.value || '';
+  const texto  = document.getElementById(`text-${mes0}-${dia}-${hora}`)?.value  || '';
+  guardar(mes0, dia, hora, fuente, texto);
 
-  const bloque = document.getElementById(`day-${mes0}-${dia}`);
-  if (bloque) {
-    bloque.classList.toggle('has-entry', !!(fuente || texto.trim()));
+  const dayBlock = document.getElementById(`day-${mes0}-${dia}`);
+  if (dayBlock) {
+    const entries = getEntriesForDay(mes0, dia);
+    dayBlock.classList.toggle('has-entry', Object.keys(entries).length > 0);
+    // Actualizar resumen en el header
+    const summary = document.querySelector(`#dh-${mes0}-${dia} .day-summary`);
+    if (summary) {
+      const newSummary = getDaySummary(mes0, dia);
+      summary.textContent = newSummary || 'Sin registros';
+    }
   }
 
+  if (!silencioso) showToast(`✓ ${hora} guardada`);
+  renderMeses();
+}
+
+function guardarDiaCompleto(mes0, dia) {
+  for (let h = 0; h < 24; h++) {
+    const horaStr = String(h).padStart(2, '0') + ':00';
+    const fuente = document.getElementById(`fuente-${mes0}-${dia}-${horaStr}`)?.value || '';
+    const texto  = document.getElementById(`text-${mes0}-${dia}-${horaStr}`)?.value  || '';
+    if (fuente || texto.trim()) {
+      guardar(mes0, dia, horaStr, fuente, texto);
+    }
+  }
   const label = document.getElementById(`saved-${mes0}-${dia}`);
   if (label) {
     label.classList.add('show');
     setTimeout(() => label.classList.remove('show'), 2500);
   }
-
-  if (!silencioso) showToast('✓ Entrada guardada');
+  const dayBlock = document.getElementById(`day-${mes0}-${dia}`);
+  if (dayBlock) {
+    const entries = getEntriesForDay(mes0, dia);
+    dayBlock.classList.toggle('has-entry', Object.keys(entries).length > 0);
+    const summary = document.querySelector(`#dh-${mes0}-${dia} .day-summary`);
+    if (summary) {
+      summary.textContent = getDaySummary(mes0, dia) || 'Sin registros';
+    }
+  }
+  showToast('✓ Día completo guardado');
   renderMeses();
 }
 
@@ -963,22 +1142,34 @@ function exportarPDF(tipo) {
   let entradas = [];
   const h = hoy();
 
+  const getEntriesForDayExport = (mes, dia) => {
+    const data = cargarTodo();
+    const prefix = `${mes}_${dia}_`;
+    const result = [];
+    Object.keys(data).forEach(key => {
+      if (key.startsWith(prefix)) {
+        const hora = key.substring(prefix.length);
+        result.push({ hora, ...data[key] });
+      }
+    });
+    return result.sort((a, b) => a.hora.localeCompare(b.hora));
+  };
+
   if (tipo === 'dia') {
-    const mes   = mesActivo !== null ? mesActivo : h.mes;
-    const dia   = diaActivo ? diaActivo.dia : h.dia;
-    const entry = getEntry(mes, dia);
-    if (!entry || (!entry.fuente && !entry.texto.trim())) {
-      showToast('⚠️ No hay entrada para el día activo'); return;
+    const mes = mesActivo !== null ? mesActivo : h.mes;
+    const dia = diaActivo ? diaActivo.dia : h.dia;
+    const entries = getEntriesForDayExport(mes, dia);
+    if (!entries.length) {
+      showToast('⚠️ No hay entradas para el día activo'); return;
     }
-    entradas.push({ mes, dia, entry });
+    entradas.push({ mes, dia, entries });
   }
   else if (tipo === 'semana') {
     if (!semanaActiva) { showToast('⚠️ Primero abrí una semana'); return; }
     getSemana(semanaActiva.mes, semanaActiva.weekIdx).forEach(d => {
       if (d) {
-        const entry = getEntry(semanaActiva.mes, d);
-        if (entry && (entry.fuente || entry.texto.trim()))
-          entradas.push({ mes: semanaActiva.mes, dia: d, entry });
+        const entries = getEntriesForDayExport(semanaActiva.mes, d);
+        if (entries.length) entradas.push({ mes: semanaActiva.mes, dia: d, entries });
       }
     });
     if (!entradas.length) { showToast('⚠️ Sin entradas en la semana activa'); return; }
@@ -986,18 +1177,16 @@ function exportarPDF(tipo) {
   else if (tipo === 'mes') {
     if (mesActivo === null) { showToast('⚠️ Primero abrí un mes'); return; }
     for (let d = 1; d <= diasEnMes(mesActivo); d++) {
-      const entry = getEntry(mesActivo, d);
-      if (entry && (entry.fuente || entry.texto.trim()))
-        entradas.push({ mes: mesActivo, dia: d, entry });
+      const entries = getEntriesForDayExport(mesActivo, d);
+      if (entries.length) entradas.push({ mes: mesActivo, dia: d, entries });
     }
     if (!entradas.length) { showToast('⚠️ Sin entradas en el mes'); return; }
   }
   else if (tipo === 'todo') {
     MESES.forEach((_, m) => {
       for (let d = 1; d <= diasEnMes(m); d++) {
-        const entry = getEntry(m, d);
-        if (entry && (entry.fuente || entry.texto.trim()))
-          entradas.push({ mes: m, dia: d, entry });
+        const entries = getEntriesForDayExport(m, d);
+        if (entries.length) entradas.push({ mes: m, dia: d, entries });
       }
     });
     if (!entradas.length) { showToast('⚠️ No hay entradas en la bitácora'); return; }
@@ -1007,7 +1196,6 @@ function exportarPDF(tipo) {
   const marginX = 18;
   let y = 22;
 
-  // Encabezado (fondo blanco, texto sobrio para el PDF)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(20, 30, 60);
@@ -1022,14 +1210,21 @@ function exportarPDF(tipo) {
     tipo === 'semana' ? 'Semana activa' :
     tipo === 'mes'    ? MESES[mesActivo] + ' ' + YEAR :
                         'Año completo ' + YEAR;
-  doc.text(`Período: ${periodoLabel}   ·   Generado: ${new Date().toLocaleString('es-AR')}`, marginX, y);
+  
+  // Formato de fecha y hora en 24 horas sin AM/PM
+  const ahora = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const fechaStr = `${pad(ahora.getDate())}/${pad(ahora.getMonth()+1)}/${ahora.getFullYear()}`;
+  const horaStr = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}:${pad(ahora.getSeconds())}`;
+  
+  doc.text(`Período: ${periodoLabel}   ·   Generado: ${fechaStr}, ${horaStr}`, marginX, y);
   y += 4;
   doc.setDrawColor(180, 160, 0);
   doc.setLineWidth(0.5);
   doc.line(marginX, y, 210 - marginX, y);
   y += 10;
 
-  entradas.forEach(({ mes, dia, entry }) => {
+  entradas.forEach(({ mes, dia, entries }) => {
     if (y > 265) { doc.addPage(); y = 22; }
 
     doc.setFont('helvetica', 'bold');
@@ -1038,25 +1233,28 @@ function exportarPDF(tipo) {
     doc.text(`${dia} de ${MESES[mes]} de ${YEAR} — ${DIAS_SEMANA[diaSemana(mes, dia)]}`, marginX, y);
     y += 6;
 
-    if (entry.fuente) {
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(9);
-      doc.setTextColor(0, 100, 180);
-      doc.text('Fuente: ' + entry.fuente, marginX, y);
-      y += 5;
-    }
+    entries.forEach((entry, idx) => {
+      if (y > 270) { doc.addPage(); y = 22; }
 
-    if (entry.texto && entry.texto.trim()) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
-      doc.setTextColor(40, 50, 70);
-      const lines = doc.splitTextToSize(entry.texto.trim(), 210 - marginX * 2);
-      lines.forEach(line => {
-        if (y > 270) { doc.addPage(); y = 22; }
-        doc.text(line, marginX, y);
-        y += 5;
-      });
-    }
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(0, 100, 180);
+      doc.text(`Hora: ${entry.hora}  ·  Fuente: ${entry.fuente || '—'}`, marginX, y);
+      y += 5;
+
+      if (entry.texto && entry.texto.trim()) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(40, 50, 70);
+        const lines = doc.splitTextToSize(entry.texto.trim(), 210 - marginX * 2);
+        lines.forEach(line => {
+          if (y > 270) { doc.addPage(); y = 22; }
+          doc.text(line, marginX + 4, y);
+          y += 4.5;
+        });
+      }
+      y += 2;
+    });
 
     y += 3;
     doc.setDrawColor(210, 215, 230);
@@ -1065,7 +1263,6 @@ function exportarPDF(tipo) {
     y += 7;
   });
 
-  // Pie de página
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
@@ -1075,9 +1272,10 @@ function exportarPDF(tipo) {
     doc.text(`Bitácora Ruido Sauce Viejo ${YEAR}  ·  Pág ${i}/${total}`, 105, 292, { align: 'center' });
   }
 
-  const ts  = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  doc.save(`bitacora_ruido_${tipo}_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}.pdf`);
+  const ts = new Date();
+  const pad2 = n => String(n).padStart(2, '0');
+  const fechaHora = `${ts.getFullYear()}${pad2(ts.getMonth()+1)}${pad2(ts.getDate())}_${pad2(ts.getHours())}${pad2(ts.getMinutes())}`;
+  doc.save(`bitacora_ruido_${tipo}_${fechaHora}.pdf`);
   showToast('✓ PDF generado');
 }
 
@@ -1105,7 +1303,7 @@ function descargarRespaldo() {
   }
   const payload = {
     app:     'bitacora_ruido_sauceviejo',
-    version: 1,
+    version: 2,
     año:     YEAR,
     exportado: new Date().toISOString(),
     entradas: data
@@ -1116,7 +1314,7 @@ function descargarRespaldo() {
   const ts   = new Date();
   const pad  = n => String(n).padStart(2, '0');
   a.href     = url;
-  a.download = `bitacora_ruido_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}.json`;
+  a.download = `bitacora_ruido_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.json`;
   a.click();
   URL.revokeObjectURL(url);
   showToast('✓ Respaldo descargado');
@@ -1129,23 +1327,19 @@ function restaurarRespaldo(event) {
   reader.onload = e => {
     try {
       const payload = JSON.parse(e.target.result);
-      // Aceptar tanto el formato envuelto como un JSON plano de entradas
       const entradas = payload.entradas || payload;
       if (typeof entradas !== 'object' || Array.isArray(entradas)) {
         showToast('⚠️ Archivo inválido'); return;
       }
-      // Confirmar antes de sobreescribir
       const total = Object.keys(entradas).length;
       if (!confirm(`¿Restaurar ${total} entrada${total !== 1 ? 's' : ''} desde el archivo?\nEsto reemplazará los datos actuales en el navegador.`)) return;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(entradas));
       showToast(`✓ ${total} entrada${total !== 1 ? 's' : ''} restaurada${total !== 1 ? 's' : ''}`);
-      // Refrescar la vista
       renderMeses();
       if (mesActivo !== null) abrirMes(mesActivo);
     } catch {
       showToast('⚠️ No se pudo leer el archivo');
     }
-    // Limpiar el input para que se pueda volver a usar
     event.target.value = '';
   };
   reader.readAsText(file);
