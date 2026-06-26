@@ -101,7 +101,7 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 30px 20px 60px;
+  padding: 30px 12px 60px;
   position: relative;
   z-index: 1;
 }
@@ -111,18 +111,18 @@ body {
 ══════════════════════════════════════════ */
 .theme-toggle {
   position: fixed;
-  top: 16px;
-  right: 18px;
+  top: 12px;
+  right: 12px;
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--panel);
   border: 1px solid var(--border);
-  padding: 7px 14px;
+  padding: 6px 12px;
   cursor: pointer;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   letter-spacing: 1.5px;
   color: var(--text-dim);
   text-transform: uppercase;
@@ -134,15 +134,15 @@ body {
   border-color: var(--gold);
   color: var(--gold);
 }
-.theme-icon { font-size: 1rem; }
+.theme-icon { font-size: 0.9rem; }
 
 /* ══════════════════════════════════════════
    HEADER
 ══════════════════════════════════════════ */
 header {
   text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 24px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
   position: relative;
 }
@@ -158,19 +158,19 @@ header::after {
 .badge {
   display: inline-block;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 4px;
+  font-size: 0.6rem;
+  letter-spacing: 3px;
   color: var(--gold);
   background: var(--badge-bg);
   border: 1px solid var(--badge-brd);
-  padding: 5px 16px;
-  margin-bottom: 16px;
+  padding: 4px 12px;
+  margin-bottom: 12px;
   text-transform: uppercase;
 }
 
 h1 {
   font-family: 'Rajdhani', sans-serif;
-  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-size: clamp(1.6rem, 4.5vw, 3.4rem);
   font-weight: 700;
   letter-spacing: 2px;
   line-height: 1.1;
@@ -181,10 +181,10 @@ h1 {
 }
 
 .subtitle {
-  margin-top: 10px;
-  font-size: 0.78rem;
+  margin-top: 8px;
+  font-size: 0.7rem;
   color: var(--text-dim);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   font-family: 'Share Tech Mono', monospace;
 }
 
@@ -192,14 +192,14 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 14px;
+  margin-top: 12px;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
   color: var(--text-dim);
   text-decoration: none;
   border: 1px solid var(--border);
-  padding: 6px 16px;
+  padding: 5px 14px;
   transition: all 0.2s;
   text-transform: uppercase;
 }
@@ -211,12 +211,12 @@ h1 {
 .export-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--border);
-  padding: 14px 18px;
-  margin-bottom: 24px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 1px 4px var(--shadow);
@@ -230,18 +230,18 @@ h1 {
 }
 .export-bar-label {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.67rem;
-  letter-spacing: 2px;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
   color: var(--text-dim);
   text-transform: uppercase;
-  margin-right: 4px;
+  margin-right: 2px;
 }
 .btn-export {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 1.5px;
-  padding: 8px 18px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
   cursor: pointer;
   text-transform: uppercase;
   border: 1px solid;
@@ -266,12 +266,12 @@ h1 {
 .backup-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--border);
-  padding: 12px 18px;
-  margin-bottom: 24px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 1px 4px var(--shadow);
@@ -285,29 +285,29 @@ h1 {
 }
 .backup-bar-label {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.67rem;
-  letter-spacing: 2px;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
   color: var(--text-dim);
   text-transform: uppercase;
-  margin-right: 4px;
+  margin-right: 2px;
 }
 .backup-note {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem;
+  font-size: 0.55rem;
   color: var(--text-dim);
-  letter-spacing: 0.5px;
-  line-height: 1.6;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
   width: 100%;
   margin-top: 4px;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--border);
 }
 .btn-backup-dl {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 1.5px;
-  padding: 8px 18px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
   cursor: pointer;
   text-transform: uppercase;
   border: 1px solid var(--accent);
@@ -320,10 +320,10 @@ h1 {
 
 .btn-backup-up {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 1.5px;
-  padding: 8px 18px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
   cursor: pointer;
   text-transform: uppercase;
   border: 1px solid var(--accent3);
@@ -334,6 +334,21 @@ h1 {
 .btn-backup-up:hover { background: rgba(42,138,0,0.10); }
 [data-theme="dark"] .btn-backup-up:hover { background: rgba(124,252,0,0.10); }
 
+.btn-delete-all {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
+  background: transparent;
+  transition: all 0.2s;
+}
+.btn-delete-all:hover { background: rgba(224,90,32,0.15); }
+
 /* input file oculto */
 #import-file { display: none; }
 
@@ -343,8 +358,8 @@ h1 {
 .months-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 6px;
+  margin-bottom: 18px;
 }
 @media(max-width: 800px) { .months-grid { grid-template-columns: repeat(3, 1fr); } }
 @media(max-width: 500px) { .months-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -354,10 +369,10 @@ h1 {
   border: 1px solid var(--border);
   color: var(--text-dim);
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 2px;
-  padding: 12px 8px;
+  letter-spacing: 1.5px;
+  padding: 10px 6px;
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s;
@@ -366,10 +381,10 @@ h1 {
 }
 .month-btn .month-dot {
   display: inline-block;
-  width: 7px; height: 7px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--gold);
-  margin-right: 6px;
+  margin-right: 4px;
   opacity: 0;
   transition: opacity 0.2s;
   vertical-align: middle;
@@ -401,21 +416,21 @@ h1 {
 
 .calendar-month-title {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   color: var(--gold);
   text-transform: uppercase;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .calendar-month-title::before {
   content: '';
-  width: 8px; height: 8px;
+  width: 7px; height: 7px;
   background: var(--gold);
   border-radius: 50%;
   flex-shrink: 0;
@@ -426,7 +441,7 @@ h1 {
    BLOQUE SEMANA
 ══════════════════════════════════════════ */
 .week-block {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   background: var(--panel);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -436,7 +451,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 8px 12px;
   background: var(--week-hdr);
   cursor: pointer;
   border-bottom: 1px solid var(--border);
@@ -446,27 +461,27 @@ h1 {
 .week-header:hover { background: var(--gold-bg); }
 .week-label {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
   color: var(--gold);
   text-transform: uppercase;
 }
 .week-entries-count {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.64rem;
+  font-size: 0.55rem;
   color: var(--text-dim);
 }
 .week-chevron {
   color: var(--text-dim);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   transition: transform 0.2s;
 }
 .week-header.open .week-chevron { transform: rotate(180deg); }
 
 .week-days {
   display: none;
-  padding: 12px;
-  gap: 10px;
+  padding: 8px;
+  gap: 8px;
   flex-direction: column;
   background: var(--bg2);
 }
@@ -490,9 +505,9 @@ h1 {
 
 .day-header {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
-  gap: 12px;
-  padding: 12px;
+  grid-template-columns: 60px 1fr auto;
+  gap: 10px;
+  padding: 10px 12px;
   cursor: pointer;
   align-items: center;
   user-select: none;
@@ -510,7 +525,7 @@ h1 {
 }
 .day-number {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 700;
   line-height: 1;
   color: var(--text-dim);
@@ -518,18 +533,18 @@ h1 {
 }
 .day-name {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 1px;
+  font-size: 0.5rem;
+  letter-spacing: 0.5px;
   color: var(--text-dim);
   text-transform: uppercase;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 .day-has-entry {
   display: block;
-  width: 7px; height: 7px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--gold);
-  margin: 5px auto 0;
+  margin: 4px auto 0;
   opacity: 0;
   transition: opacity 0.2s;
 }
@@ -538,25 +553,25 @@ h1 {
 
 .day-summary {
   font-family: 'Exo 2', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--text-dim);
-  padding: 0 8px;
+  padding: 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .day-chevron {
   color: var(--text-dim);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   transition: transform 0.2s;
-  padding: 0 8px;
+  padding: 0 4px;
 }
 .day-header.open .day-chevron { transform: rotate(180deg); }
 
 .day-horas {
   display: none;
-  padding: 0 12px 12px 12px;
-  gap: 6px;
+  padding: 0 10px 10px 10px;
+  gap: 4px;
   flex-direction: column;
   background: var(--bg2);
 }
@@ -565,18 +580,18 @@ h1 {
 /* ── Hora fila ── */
 .hora-fila {
   display: grid;
-  grid-template-columns: 60px 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 50px 1fr 1fr;
+  gap: 6px;
   align-items: start;
-  padding: 6px 0;
+  padding: 5px 0;
   border-bottom: 1px solid var(--border);
 }
 .hora-fila:last-child { border-bottom: none; }
 .hora-fila-label {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-dim);
-  padding-top: 6px;
+  padding-top: 5px;
   font-weight: 600;
 }
 
@@ -587,14 +602,15 @@ h1 {
   border: 1px solid var(--border);
   color: var(--text);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.74rem;
-  padding: 5px 28px 5px 10px;
+  font-size: 0.68rem;
+  padding: 5px 24px 5px 8px;
   outline: none;
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%23b08000'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 8px center;
+  background-position: right 6px center;
+  background-size: 8px 5px;
   transition: border-color 0.2s;
 }
 [data-theme="dark"] .fuente-select {
@@ -610,31 +626,31 @@ h1 {
   border: 1px solid var(--border);
   color: var(--text);
   font-family: 'Exo 2', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   line-height: 1.4;
-  padding: 5px 10px;
+  padding: 5px 8px;
   outline: none;
   resize: vertical;
-  min-height: 40px;
+  min-height: 38px;
   transition: border-color 0.2s;
 }
 .hora-textarea:focus { border-color: var(--gold); }
-.hora-textarea::placeholder { color: var(--text-dim); font-size: 0.7rem; }
+.hora-textarea::placeholder { color: var(--text-dim); font-size: 0.65rem; }
 
 /* ── Fila guardar ── */
 .day-save-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   margin-top: 4px;
   padding-top: 6px;
   border-top: 1px solid var(--border);
 }
 .day-saved-label {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 1px;
+  font-size: 0.55rem;
+  letter-spacing: 0.5px;
   color: var(--saved-color);
   opacity: 0;
   transition: opacity 0.4s;
@@ -643,10 +659,10 @@ h1 {
 
 .btn-save-day {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 1.5px;
-  padding: 6px 16px;
+  letter-spacing: 1px;
+  padding: 5px 12px;
   cursor: pointer;
   text-transform: uppercase;
   border: 1px solid var(--gold);
@@ -656,25 +672,10 @@ h1 {
 }
 .btn-save-day:hover { filter: brightness(1.1); }
 
-.btn-delete-all {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  padding: 6px 16px;
-  cursor: pointer;
-  text-transform: uppercase;
-  border: 1px solid var(--accent2);
-  color: var(--accent2);
-  background: transparent;
-  transition: all 0.2s;
-}
-.btn-delete-all:hover { background: rgba(224,90,32,0.15); }
-
 /* ══════════════════════════════════════════
    SCROLLBAR
 ══════════════════════════════════════════ */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
@@ -685,31 +686,188 @@ h1 {
 #toast {
   display: none;
   position: fixed;
-  bottom: 24px; left: 50%;
+  bottom: 20px; left: 50%;
   transform: translateX(-50%);
   background: var(--panel);
   border: 1px solid var(--gold);
   color: var(--gold);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.78rem;
-  padding: 10px 22px;
-  letter-spacing: 1px;
+  font-size: 0.7rem;
+  padding: 8px 16px;
+  letter-spacing: 0.5px;
   z-index: 9999;
   white-space: nowrap;
   box-shadow: 0 4px 20px var(--shadow);
 }
 
 /* ══════════════════════════════════════════
-   MOBILE
+   RESPONSIVE - CELULARES Y TABLETS
 ══════════════════════════════════════════ */
-@media(max-width: 600px) {
-  .day-header { grid-template-columns: 60px 1fr auto; }
-  .day-number { font-size: 1.5rem; }
-  .btn-export { padding: 7px 12px; font-size: 0.74rem; }
-  .theme-toggle { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.65rem; }
-  .hora-fila { grid-template-columns: 50px 1fr; gap: 4px; }
+@media(max-width: 768px) {
+  .container { padding: 20px 8px 40px; }
+  
+  .day-header {
+    grid-template-columns: 50px 1fr auto;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .day-number { font-size: 1.3rem; }
+  .day-summary { font-size: 0.6rem; }
+  
+  .hora-fila {
+    grid-template-columns: 45px 1fr;
+    gap: 4px;
+    padding: 4px 0;
+  }
   .hora-fila .fuente-select { grid-column: 1 / -1; }
-  .day-summary { display: none; }
+  .hora-fila-label {
+    font-size: 0.6rem;
+    padding-top: 4px;
+  }
+  
+  .fuente-select {
+    font-size: 0.6rem;
+    padding: 4px 20px 4px 6px;
+  }
+  .hora-textarea {
+    font-size: 0.7rem;
+    min-height: 32px;
+    padding: 4px 6px;
+  }
+  
+  .day-horas { padding: 0 6px 6px 6px; }
+  
+  .btn-save-day {
+    font-size: 0.6rem;
+    padding: 4px 10px;
+  }
+  
+  .export-bar { padding: 8px 10px; }
+  .btn-export {
+    font-size: 0.6rem;
+    padding: 4px 10px;
+  }
+  .backup-bar { padding: 8px 10px; }
+  .btn-backup-dl, .btn-backup-up, .btn-delete-all {
+    font-size: 0.6rem;
+    padding: 4px 10px;
+  }
+  
+  .months-grid { gap: 4px; }
+  .month-btn {
+    font-size: 0.7rem;
+    padding: 8px 4px;
+  }
+  
+  .week-header { padding: 6px 10px; }
+  .week-label { font-size: 0.55rem; }
+  .week-days { padding: 6px; gap: 6px; }
+  
+  .theme-toggle {
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    font-size: 0.55rem;
+  }
+  
+  #toast {
+    font-size: 0.6rem;
+    padding: 6px 14px;
+    white-space: normal;
+    max-width: 90%;
+  }
+}
+
+@media(max-width: 480px) {
+  .day-header {
+    grid-template-columns: 42px 1fr auto;
+    gap: 4px;
+    padding: 6px 8px;
+  }
+  .day-number { font-size: 1.1rem; }
+  .day-name { font-size: 0.45rem; }
+  .day-summary { 
+    font-size: 0.5rem;
+    white-space: normal;
+    overflow: visible;
+    max-height: 2.4em;
+  }
+  
+  .hora-fila {
+    grid-template-columns: 38px 1fr;
+    gap: 3px;
+    padding: 3px 0;
+  }
+  .hora-fila-label {
+    font-size: 0.55rem;
+    padding-top: 3px;
+  }
+  
+  .fuente-select {
+    font-size: 0.55rem;
+    padding: 3px 18px 3px 5px;
+    background-size: 7px 4px;
+    background-position: right 4px center;
+  }
+  .hora-textarea {
+    font-size: 0.65rem;
+    min-height: 28px;
+    padding: 3px 5px;
+  }
+  
+  .day-horas { padding: 0 4px 4px 4px; }
+  .btn-save-day {
+    font-size: 0.55rem;
+    padding: 3px 8px;
+  }
+  .day-save-row { padding-top: 4px; margin-top: 2px; }
+  
+  .export-bar-label { font-size: 0.5rem; }
+  .btn-export {
+    font-size: 0.55rem;
+    padding: 3px 8px;
+  }
+  .backup-bar-label { font-size: 0.5rem; }
+  .btn-backup-dl, .btn-backup-up, .btn-delete-all {
+    font-size: 0.55rem;
+    padding: 3px 8px;
+  }
+  .backup-note { font-size: 0.5rem; }
+  
+  .months-grid { grid-template-columns: repeat(2, 1fr); gap: 3px; }
+  .month-btn {
+    font-size: 0.6rem;
+    padding: 6px 3px;
+  }
+  
+  .week-header { padding: 5px 8px; }
+  .week-label { font-size: 0.5rem; }
+  .week-entries-count { font-size: 0.45rem; }
+  .week-days { padding: 4px; gap: 4px; }
+  
+  .calendar-month-title {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+  }
+  .calendar-month-title::before { width: 5px; height: 5px; }
+  
+  .theme-toggle {
+    padding: 3px 8px;
+    font-size: 0.5rem;
+    gap: 4px;
+  }
+  .theme-icon { font-size: 0.7rem; }
+  
+  h1 { font-size: clamp(1.2rem, 4vw, 1.8rem); }
+  .badge { font-size: 0.5rem; padding: 3px 8px; }
+  .subtitle { font-size: 0.6rem; }
+  
+  #toast {
+    font-size: 0.55rem;
+    padding: 5px 12px;
+    bottom: 12px;
+  }
 }
 </style>
 </head>
@@ -734,22 +892,22 @@ h1 {
   <!-- BARRA DE EXPORTACIÓN PDF -->
   <div class="export-bar">
     <span class="export-bar-label">📤 Exportar PDF —</span>
-    <button class="btn-export btn-export-day"   onclick="exportarPDF('dia')">📄 Día activo</button>
-    <button class="btn-export btn-export-week"  onclick="exportarPDF('semana')">📋 Semana activa</button>
-    <button class="btn-export btn-export-month" onclick="exportarPDF('mes')">📅 Mes abierto</button>
-    <button class="btn-export btn-export-all"   onclick="exportarPDF('todo')">📦 Todo el año</button>
+    <button class="btn-export btn-export-day"   onclick="exportarPDF('dia')">📄 Día</button>
+    <button class="btn-export btn-export-week"  onclick="exportarPDF('semana')">📋 Semana</button>
+    <button class="btn-export btn-export-month" onclick="exportarPDF('mes')">📅 Mes</button>
+    <button class="btn-export btn-export-all"   onclick="exportarPDF('todo')">📦 Año</button>
   </div>
 
   <!-- BARRA DE RESPALDO JSON -->
   <div class="backup-bar">
-    <span class="backup-bar-label">💾 Respaldo de datos —</span>
-    <button class="btn-backup-dl" onclick="descargarRespaldo()">⬇️ Descargar JSON</button>
-    <button class="btn-backup-up" onclick="document.getElementById('import-file').click()">⬆️ Restaurar JSON</button>
+    <span class="backup-bar-label">💾 Respaldo —</span>
+    <button class="btn-backup-dl" onclick="descargarRespaldo()">⬇️ JSON</button>
+    <button class="btn-backup-up" onclick="document.getElementById('import-file').click()">⬆️ Restaurar</button>
     <input type="file" id="import-file" accept=".json" onchange="restaurarRespaldo(event)">
+    <button class="btn-delete-all" onclick="borrarTodosLosDatos()">🗑️ Borrar todo</button>
     <span class="backup-note">
-      Los datos de la bitácora se guardan en este navegador. Si limpiás el caché o usás otro dispositivo, descargá primero el archivo JSON como respaldo. Para recuperar la información, usá "Restaurar JSON" y seleccioná ese archivo.
+      Los datos se guardan en el navegador. Descargá el JSON como respaldo antes de limpiar caché.
     </span>
-    <button class="btn-delete-all" onclick="borrarTodosLosDatos()">🗑️ Borrar todos los datos</button>
   </div>
 
   <!-- GRILLA DE MESES -->
@@ -795,7 +953,7 @@ const TEMA_KEY      = 'bitacora_tema';
 let mesActivo    = null;
 let diaActivo    = null;
 let semanaActiva = null;
-let diaAbierto   = null; // { mes, dia } para controlar qué día está abierto
+let diaAbierto   = null;
 
 // ─── TEMA ─────────────────────────────────────────────────────────────────────
 function aplicarTema(tema) {
@@ -836,10 +994,6 @@ function cargarTodo() {
   catch { return {}; }
 }
 
-function getEntry(mes0, dia, hora) {
-  return cargarTodo()[`${mes0}_${dia}_${hora}`] || null;
-}
-
 function getEntriesForDay(mes0, dia) {
   const data = cargarTodo();
   const prefix = `${mes0}_${dia}_`;
@@ -859,11 +1013,11 @@ function getDaySummary(mes0, dia) {
   if (!horas.length) return '';
   const resumen = horas.map(h => {
     const e = entries[h];
-    const texto = e.texto ? e.texto.substring(0, 30) : '';
+    const texto = e.texto ? e.texto.substring(0, 25) : '';
     const fuente = e.fuente ? ` [${e.fuente}]` : '';
     return `${h}${fuente}${texto ? ': ' + texto : ''}`;
   }).join(' | ');
-  return resumen.length > 80 ? resumen.substring(0, 80) + '…' : resumen;
+  return resumen.length > 70 ? resumen.substring(0, 70) + '…' : resumen;
 }
 
 function borrarTodosLosDatos() {
@@ -948,8 +1102,8 @@ function abrirMes(m) {
     wBlock.id = `week-${m}-${wIdx}`;
     wBlock.innerHTML = `
       <div class="week-header" id="wh-${m}-${wIdx}" onclick="toggleSemana(${m},${wIdx})">
-        <span class="week-label">Semana del ${primerReal} al ${ultimoReal} de ${MESES[m]}</span>
-        <span class="week-entries-count">${entrSemana > 0 ? entrSemana + ' entrada' + (entrSemana > 1 ? 's' : '') : 'sin registros'}</span>
+        <span class="week-label">Semana ${primerReal}-${ultimoReal} ${MESES[m]}</span>
+        <span class="week-entries-count">${entrSemana > 0 ? entrSemana + ' reg' + (entrSemana > 1 ? 's' : '') : 'sin'}</span>
         <span class="week-chevron">▼</span>
       </div>
       <div class="week-days" id="wd-${m}-${wIdx}">
@@ -965,7 +1119,6 @@ function abrirMes(m) {
     semanas.forEach((semana, wIdx) => {
       if (semana.includes(h.dia)) {
         setTimeout(() => toggleSemana(m, wIdx, true), 350);
-        // Abrir el día de hoy automáticamente
         setTimeout(() => toggleDia(m, h.dia, true), 450);
       }
     });
@@ -982,7 +1135,6 @@ function renderDia(mes0, dia) {
   const summary     = getDaySummary(mes0, dia);
   const isOpen      = diaAbierto && diaAbierto.mes === mes0 && diaAbierto.dia === dia;
 
-  // Generar filas para cada hora (00:00 a 23:00)
   let filas = '';
   for (let hora = 0; hora < 24; hora++) {
     const horaStr = String(hora).padStart(2, '0') + ':00';
@@ -998,7 +1150,7 @@ function renderDia(mes0, dia) {
         </select>
         <textarea class="hora-textarea"
           id="text-${mes0}-${dia}-${horaStr}"
-          placeholder="Descripción del ruido a las ${horaStr}…"
+          placeholder="${horaStr}"
           oninput="autoguardar(${mes0},${dia},'${horaStr}')"
         >${entry ? entry.texto : ''}</textarea>
       </div>`;
@@ -1033,7 +1185,6 @@ function toggleDia(mes0, dia, forceOpen = false) {
 
   const isOpen = horas.classList.contains('open');
 
-  // Si hay otro día abierto, lo cerramos
   if (diaAbierto && (diaAbierto.mes !== mes0 || diaAbierto.dia !== dia)) {
     const prevHeader = document.getElementById(`dh-${diaAbierto.mes}-${diaAbierto.dia}`);
     const prevHoras  = document.getElementById(`dhors-${diaAbierto.mes}-${diaAbierto.dia}`);
@@ -1094,11 +1245,9 @@ function guardarHora(mes0, dia, hora, silencioso = false) {
   if (dayBlock) {
     const entries = getEntriesForDay(mes0, dia);
     dayBlock.classList.toggle('has-entry', Object.keys(entries).length > 0);
-    // Actualizar resumen en el header
     const summary = document.querySelector(`#dh-${mes0}-${dia} .day-summary`);
     if (summary) {
-      const newSummary = getDaySummary(mes0, dia);
-      summary.textContent = newSummary || 'Sin registros';
+      summary.textContent = getDaySummary(mes0, dia) || 'Sin registros';
     }
   }
 
@@ -1211,7 +1360,6 @@ function exportarPDF(tipo) {
     tipo === 'mes'    ? MESES[mesActivo] + ' ' + YEAR :
                         'Año completo ' + YEAR;
   
-  // Formato de fecha y hora en 24 horas sin AM/PM
   const ahora = new Date();
   const pad = n => String(n).padStart(2, '0');
   const fechaStr = `${pad(ahora.getDate())}/${pad(ahora.getMonth()+1)}/${ahora.getFullYear()}`;
@@ -1233,7 +1381,7 @@ function exportarPDF(tipo) {
     doc.text(`${dia} de ${MESES[mes]} de ${YEAR} — ${DIAS_SEMANA[diaSemana(mes, dia)]}`, marginX, y);
     y += 6;
 
-    entries.forEach((entry, idx) => {
+    entries.forEach((entry) => {
       if (y > 270) { doc.addPage(); y = 22; }
 
       doc.setFont('helvetica', 'italic');

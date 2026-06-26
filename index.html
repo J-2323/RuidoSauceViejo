@@ -32,6 +32,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root {
     --bg: #07080f;
@@ -362,7 +364,7 @@
   }
   .export-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 6px;
   }
   .btn-export {
@@ -1163,6 +1165,7 @@
         <span class="export-label">📤 Exportar / Compartir</span>
         <div class="export-grid">
           <button class="btn-export" onclick="exportImage()">🖼️ Imagen</button>
+          <button class="btn-export pdf" onclick="exportPDF()">📄 PDF</button>
           <button class="btn-export excel" onclick="exportExcel()">📊 Excel</button>
           <button class="btn-export share" onclick="shareData()">🔗 Compartir</button>
         </div>
