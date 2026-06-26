@@ -580,7 +580,7 @@ h1 {
 /* ── Hora fila ── */
 .hora-fila {
   display: grid;
-  grid-template-columns: 50px 1fr 1fr;
+  grid-template-columns: 50px 160px 1fr;
   gap: 6px;
   align-items: start;
   padding: 5px 0;
@@ -720,6 +720,7 @@ h1 {
     padding: 4px 0;
   }
   .hora-fila .fuente-select { grid-column: 1 / -1; }
+  .hora-fila .hora-textarea  { grid-column: 1 / -1; }
   .hora-fila-label {
     font-size: 0.6rem;
     padding-top: 4px;
@@ -798,6 +799,8 @@ h1 {
     gap: 3px;
     padding: 3px 0;
   }
+  .hora-fila .fuente-select { grid-column: 1 / -1; }
+  .hora-fila .hora-textarea  { grid-column: 1 / -1; }
   .hora-fila-label {
     font-size: 0.55rem;
     padding-top: 3px;
