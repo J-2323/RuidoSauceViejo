@@ -38,6 +38,12 @@
   --saved-color: #2a8a00;
   --today-brd: #0077cc;
   --h1-grad:   linear-gradient(135deg, #1a1f2e 20%, #b08000 65%, #e05a20 100%);
+  /* Escala de calificación de ruido */
+  --rt-0: #2a8a00; /* No perceptible */
+  --rt-1: #0077cc; /* Bajo */
+  --rt-2: #b08000; /* Medio */
+  --rt-3: #e05a20; /* Alto */
+  --rt-4: #b3261e; /* Muy alto */
 }
 
 /* ══════════════════════════════════════════
@@ -68,6 +74,12 @@
   --saved-color: #7cfc00;
   --today-brd: rgba(0,212,255,0.5);
   --h1-grad:   linear-gradient(135deg, #ffffff 30%, #ffd700 70%, #ff6b35 100%);
+  /* Escala de calificación de ruido */
+  --rt-0: #7cfc00; /* No perceptible */
+  --rt-1: #00d4ff; /* Bajo */
+  --rt-2: #ffd700; /* Medio */
+  --rt-3: #ff6b35; /* Alto */
+  --rt-4: #ff2d55; /* Muy alto */
 }
 
 /* ══════════════════════════════════════════
@@ -252,10 +264,12 @@ h1 {
 .btn-export-week  { border-color: var(--accent3); color: var(--accent3); }
 .btn-export-month { border-color: var(--gold);    color: var(--gold);    }
 .btn-export-all   { border-color: var(--accent2); color: var(--accent2); }
+.btn-export-charts { border-color: var(--gold); color: var(--gold); border-style: dashed; }
 .btn-export-day:hover   { background: rgba(0,119,204,0.10); }
 .btn-export-week:hover  { background: rgba(42,138,0,0.10);  }
 .btn-export-month:hover { background: var(--gold-bg);       }
 .btn-export-all:hover   { background: rgba(224,90,32,0.10); }
+.btn-export-charts:hover { background: var(--gold-bg); }
 [data-theme="dark"] .btn-export-day:hover   { background: rgba(0,212,255,0.12); }
 [data-theme="dark"] .btn-export-week:hover  { background: rgba(124,252,0,0.10); }
 [data-theme="dark"] .btn-export-all:hover   { background: rgba(255,107,53,0.10); }
@@ -451,6 +465,8 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   padding: 8px 12px;
   background: var(--week-hdr);
   cursor: pointer;
@@ -673,6 +689,454 @@ h1 {
 .btn-save-day:hover { filter: brightness(1.1); }
 
 /* ══════════════════════════════════════════
+   LEYENDA GLOBAL DE ESCALA DE RUIDO
+══════════════════════════════════════════ */
+.rating-legend-global {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.rating-legend-global-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.rating-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+.rating-legend-swatch {
+  width: 11px; height: 11px;
+  display: inline-block;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════
+   SECCIÓN DE CALIFICACIÓN POR FRANJA (día)
+══════════════════════════════════════════ */
+.rating-section {
+  padding: 6px 0 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.rating-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.franja-row {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+}
+.franja-row:not(:last-child) { border-bottom: 1px dashed var(--border); }
+.franja-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.rating-options { display: flex; gap: 5px; flex-wrap: wrap; }
+.rating-chip {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+  pointer-events: none;
+}
+.rating-chip-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 26px;
+  border: 1.5px solid var(--border2);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--input-bg);
+  transition: all 0.15s;
+  user-select: none;
+}
+.rating-chip-label:hover { border-color: var(--gold); color: var(--gold); }
+.rating-chip[data-lvl="0"]:checked + .rating-chip-label { background: var(--rt-0); border-color: var(--rt-0); color: #fff; }
+.rating-chip[data-lvl="1"]:checked + .rating-chip-label { background: var(--rt-1); border-color: var(--rt-1); color: #fff; }
+.rating-chip[data-lvl="2"]:checked + .rating-chip-label { background: var(--rt-2); border-color: var(--rt-2); color: #fff; }
+.rating-chip[data-lvl="3"]:checked + .rating-chip-label { background: var(--rt-3); border-color: var(--rt-3); color: #fff; }
+.rating-chip[data-lvl="4"]:checked + .rating-chip-label { background: var(--rt-4); border-color: var(--rt-4); color: #fff; }
+[data-theme="dark"] .rating-chip:checked + .rating-chip-label { color: #07080f; }
+
+.franja-clear-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  background: transparent;
+  padding: 4px 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.franja-clear-btn:hover { color: var(--accent2); border-color: var(--accent2); }
+
+/* Indicador de calificación promedio en el encabezado del día */
+.day-rating-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px; height: 12px;
+  border: 1.5px solid var(--border2);
+  margin-top: 4px;
+  background: var(--panel);
+}
+.day-rating-dot { width: 6px; height: 6px; display: block; }
+
+/* ══════════════════════════════════════════
+   COBERTURA SEMANAL
+══════════════════════════════════════════ */
+.week-coverage {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.week-dominant-dot {
+  width: 8px; height: 8px;
+  display: inline-block;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════
+   GRÁFICO DE PREDOMINIO DE RUIDO
+══════════════════════════════════════════ */
+.chart-section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 14px;
+  margin-top: 14px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.chart-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.6;
+}
+.chart-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  font-size: 1rem;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.chart-svg-wrap { overflow-x: auto; padding-bottom: 4px; }
+.chart-empty {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 10px 0;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--text-dim);
+}
+.chart-legend-swatch {
+  width: 10px; height: 10px;
+  display: inline-block;
+  border: 1px solid var(--border2);
+}
+.chart-summary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.chart-note {
+  margin-top: 8px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.62rem;
+  font-style: italic;
+  color: var(--text-dim);
+  opacity: 0.85;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════
+   CONTROLES DE GRÁFICO (vista / agrupamiento)
+══════════════════════════════════════════ */
+.chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--border);
+}
+.chart-control-group { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.chart-control-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-right: 2px;
+}
+.chart-toggle-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  padding: 4px 9px;
+  border: 1px solid var(--border2);
+  background: var(--input-bg);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chart-toggle-btn:hover { border-color: var(--gold); color: var(--gold); }
+.chart-toggle-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1f2e;
+  font-weight: 700;
+}
+[data-theme="dark"] .chart-toggle-btn.active { color: #07080f; }
+
+/* ══════════════════════════════════════════
+   VISTA ANUAL EN PANTALLA
+══════════════════════════════════════════ */
+.annual-bar { text-align: center; margin: 4px 0 16px; }
+.btn-annual-toggle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border: 1.5px dashed var(--gold);
+  color: var(--gold);
+  background: var(--panel);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-annual-toggle:hover { background: var(--gold-bg); }
+.annual-panel { display: none; margin-bottom: 20px; }
+.annual-panel.visible { display: block; animation: slideDown 0.3s ease; }
+.annual-panel-inner {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 16px;
+  box-shadow: 0 1px 4px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.annual-panel-inner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.6;
+}
+.month-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.month-mini-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  padding: 10px;
+}
+.month-mini-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.month-mini-empty {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  padding: 8px 0;
+}
+.month-mini-summary {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════
+   TABLA DE CALIFICACIONES POR DÍA (semana / franjas)
+══════════════════════════════════════════ */
+.tabla-bar { text-align: center; margin: 4px 0 16px; }
+.btn-tabla-toggle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border: 1.5px dashed var(--accent);
+  color: var(--accent);
+  background: var(--panel);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-tabla-toggle:hover { background: rgba(0,119,204,0.10); }
+[data-theme="dark"] .btn-tabla-toggle:hover { background: rgba(0,212,255,0.12); }
+.tabla-panel { display: none; margin-bottom: 20px; }
+.tabla-panel.visible { display: block; animation: slideDown 0.3s ease; }
+.tabla-panel-inner {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 16px;
+  box-shadow: 0 1px 4px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.tabla-panel-inner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.6;
+}
+.tabla-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.tabla-export-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-tabla-export {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  padding: 6px 14px;
+  border: 1px solid var(--accent3);
+  color: var(--accent3);
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-tabla-export:hover { background: rgba(42,138,0,0.10); }
+[data-theme="dark"] .btn-tabla-export:hover { background: rgba(124,252,0,0.10); }
+.btn-tabla-export-pdf { border-color: var(--accent2); color: var(--accent2); }
+.btn-tabla-export-pdf:hover { background: rgba(224,90,32,0.10); }
+[data-theme="dark"] .btn-tabla-export-pdf:hover { background: rgba(255,107,53,0.10); }
+.tabla-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+}
+.tabla-leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+.tabla-leyenda-swatch {
+  width: 11px; height: 11px;
+  display: inline-block;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.tabla-scroll { overflow-x: auto; }
+.tabla-mes {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 560px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+}
+.tabla-mes thead th {
+  background: var(--week-hdr);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.58rem;
+  padding: 7px 5px;
+  border: 1px solid var(--border);
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+.tabla-fila td {
+  border: 1px solid var(--border);
+  padding: 5px 4px;
+  text-align: center;
+  color: var(--text);
+}
+.tabla-semana {
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--week-hdr);
+  white-space: nowrap;
+}
+.tabla-fecha {
+  text-align: left !important;
+  white-space: nowrap;
+  padding-left: 8px !important;
+  color: var(--text-dim);
+}
+.tabla-celda {
+  font-weight: 700;
+  min-width: 34px;
+}
+.tabla-fila.semana-0 td:not(.tabla-celda) { background: var(--input-bg); }
+.tabla-fila.semana-1 td:not(.tabla-celda) { background: var(--panel); }
+
+/* ══════════════════════════════════════════
    SCROLLBAR
 ══════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 5px; }
@@ -763,6 +1227,7 @@ h1 {
   .week-header { padding: 6px 10px; }
   .week-label { font-size: 0.55rem; }
   .week-days { padding: 6px; gap: 6px; }
+  .week-coverage { font-size: 0.5rem; }
   
   .theme-toggle {
     top: 8px;
@@ -777,6 +1242,19 @@ h1 {
     white-space: normal;
     max-width: 90%;
   }
+  
+  .rating-legend-global { gap: 6px; padding: 6px 10px; }
+  .rating-legend-item { font-size: 0.55rem; }
+  .franja-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 6px 0;
+  }
+  .franja-label { font-size: 0.6rem; }
+  .rating-chip-label { width: 27px; height: 24px; font-size: 0.55rem; }
+  .franja-clear-btn { align-self: flex-start; }
+  .chart-title { font-size: 0.85rem; }
+  .chart-summary { font-size: 0.58rem; }
 }
 
 @media(max-width: 480px) {
@@ -871,6 +1349,24 @@ h1 {
     padding: 5px 12px;
     bottom: 12px;
   }
+  
+  .rating-legend-global-label { width: 100%; }
+  .rating-legend-item { font-size: 0.5rem; }
+  .rating-chip-label { width: 24px; height: 22px; font-size: 0.5rem; }
+  .rating-title { font-size: 0.55rem; }
+  .week-coverage { font-size: 0.45rem; }
+  .chart-legend-item { font-size: 0.52rem; }
+  .chart-summary { font-size: 0.53rem; }
+  .chart-controls { gap: 8px 12px; }
+  .chart-control-label { width: 100%; }
+  .chart-toggle-btn { font-size: 0.52rem; padding: 3px 7px; }
+  .btn-annual-toggle { font-size: 0.7rem; padding: 8px 14px; }
+  .month-mini-grid { grid-template-columns: 1fr; }
+  .btn-tabla-toggle { font-size: 0.7rem; padding: 8px 14px; }
+  .tabla-mes { font-size: 0.58rem; min-width: 480px; }
+  .tabla-mes thead th { font-size: 0.5rem; padding: 5px 3px; }
+  .tabla-fila td { padding: 4px 3px; }
+  .btn-tabla-export { font-size: 0.58rem; padding: 5px 10px; }
 }
 </style>
 </head>
@@ -899,6 +1395,7 @@ h1 {
     <button class="btn-export btn-export-week"  onclick="exportarPDF('semana')">📋 Semana</button>
     <button class="btn-export btn-export-month" onclick="exportarPDF('mes')">📅 Mes</button>
     <button class="btn-export btn-export-all"   onclick="exportarPDF('todo')">📦 Año</button>
+    <button class="btn-export btn-export-charts" onclick="exportarPDF('graficos')">📊 Todos los gráficos</button>
   </div>
 
   <!-- BARRA DE RESPALDO JSON -->
@@ -916,10 +1413,33 @@ h1 {
   <!-- GRILLA DE MESES -->
   <div class="months-grid" id="months-grid"></div>
 
+  <!-- VISTA ANUAL EN PANTALLA (opcional) -->
+  <div class="annual-bar">
+    <button class="btn-annual-toggle" id="btn-annual-toggle" onclick="toggleVistaAnual()">📆 Ver todos los gráficos del año en pantalla</button>
+  </div>
+  <div class="annual-panel" id="annual-panel"></div>
+
   <!-- CONTENIDO DEL MES SELECCIONADO -->
   <div class="calendar-section" id="calendar-section">
     <div class="calendar-month-title" id="calendar-month-title"></div>
+
+    <div class="rating-legend-global">
+      <span class="rating-legend-global-label">🔊 Escala de ruido —</span>
+      <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-0)"></span>NP · No perceptible</span>
+      <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-1)"></span>B · Bajo</span>
+      <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-2)"></span>M · Medio</span>
+      <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-3)"></span>A · Alto</span>
+      <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-4)"></span>MA · Muy alto</span>
+    </div>
+
     <div id="weeks-container"></div>
+
+    <div class="chart-section" id="chart-section"></div>
+
+    <div class="tabla-bar">
+      <button class="btn-tabla-toggle" id="btn-tabla-toggle" onclick="toggleTablaMes()">📋 Ver tabla de calificaciones del mes</button>
+    </div>
+    <div class="tabla-panel" id="tabla-panel"></div>
   </div>
 
 </div><!-- /container -->
@@ -950,13 +1470,37 @@ const FUENTES = [
   { value: 'Otro', label: '✏️ Otro' },
 ];
 
+const RATING_LEVELS = [
+  { value: 0, label: 'No perceptible', abbr: 'NP' },
+  { value: 1, label: 'Bajo',           abbr: 'B'  },
+  { value: 2, label: 'Medio',          abbr: 'M'  },
+  { value: 3, label: 'Alto',           abbr: 'A'  },
+  { value: 4, label: 'Muy alto',       abbr: 'MA' },
+];
+const FRANJAS = [
+  { idx: 0, label: '00–04' },
+  { idx: 1, label: '04–08' },
+  { idx: 2, label: '08–12' },
+  { idx: 3, label: '12–16' },
+  { idx: 4, label: '16–20' },
+  { idx: 5, label: '20–24' },
+];
+
 const STORAGE_KEY   = 'bitacora_ruido_sv';
+const CALIF_KEY     = 'bitacora_ruido_calif_sv';
 const TEMA_KEY      = 'bitacora_tema';
 
 let mesActivo    = null;
 let diaActivo    = null;
 let semanaActiva = null;
 let diaAbierto   = null;
+
+// ─── ESTADO DE VISUALIZACIÓN DE GRÁFICOS (opcional, elegido por el usuario) ───
+let chartVista           = 'barras';   // 'barras' | 'barras-h' | 'torta' | 'porcentaje'
+let chartAgrupacionMes   = 'dia';      // 'dia' | 'semana'  (para el gráfico del mes abierto)
+let chartAgrupacionAnio  = 'mes';      // 'mes' | 'semana'  (para el gráfico anual en pantalla)
+let chartMetrica         = 'franja';   // 'franja' | 'dia'  (cómo se calculan Cobertura/Predominio)
+let vistaAnualAbierta    = false;
 
 // ─── TEMA ─────────────────────────────────────────────────────────────────────
 function aplicarTema(tema) {
@@ -1026,9 +1570,693 @@ function getDaySummary(mes0, dia) {
 function borrarTodosLosDatos() {
   if (!confirm('⚠️ ¿Estás seguro? Esto borrará TODAS las entradas de la bitácora. Esta acción no se puede deshacer.')) return;
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(CALIF_KEY);
   showToast('🗑️ Todos los datos han sido eliminados');
   renderMeses();
   if (mesActivo !== null) abrirMes(mesActivo);
+}
+
+// ─── CALIFICACIÓN DE RUIDO POR FRANJA (0-4, 4-8, 8-12, 12-16, 16-20, 20-24) ────
+function cargarCalificaciones() {
+  try { return JSON.parse(localStorage.getItem(CALIF_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function guardarCalificacionStorage(mes0, dia, franjaIdx, valor) {
+  const data = cargarCalificaciones();
+  data[`${mes0}_${dia}_${franjaIdx}`] = valor;
+  localStorage.setItem(CALIF_KEY, JSON.stringify(data));
+}
+
+function borrarCalificacionStorage(mes0, dia, franjaIdx) {
+  const data = cargarCalificaciones();
+  delete data[`${mes0}_${dia}_${franjaIdx}`];
+  localStorage.setItem(CALIF_KEY, JSON.stringify(data));
+}
+
+function getCalificacionesDia(mes0, dia) {
+  const cal = cargarCalificaciones();
+  const prefix = `${mes0}_${dia}_`;
+  const result = {};
+  Object.keys(cal).forEach(k => {
+    if (k.startsWith(prefix)) result[parseInt(k.substring(prefix.length), 10)] = cal[k];
+  });
+  return result;
+}
+
+function getDayAvgRating(mes0, dia) {
+  const vals = Object.values(getCalificacionesDia(mes0, dia));
+  if (!vals.length) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function computeWeekCoverage(mes0, wIdx) {
+  const diasReales = getSemana(mes0, wIdx).filter(d => d !== null);
+  const cal = cargarCalificaciones();
+  let filled = 0;
+  const counts = [0, 0, 0, 0, 0];
+  diasReales.forEach(d => {
+    for (let f = 0; f < 6; f++) {
+      const key = `${mes0}_${d}_${f}`;
+      if (cal[key] !== undefined) { filled++; counts[cal[key]]++; }
+    }
+  });
+  const posibles = diasReales.length * 6;
+  const pct = posibles ? Math.round((filled / posibles) * 100) : 0;
+  const maxIdx = filled ? counts.indexOf(Math.max(...counts)) : -1;
+  return { filled, posibles, pct, maxIdx };
+}
+
+function weekCoverageHTML(mes0, wIdx) {
+  const c = computeWeekCoverage(mes0, wIdx);
+  const dominante = c.maxIdx >= 0
+    ? `<span class="week-dominant-dot" style="background:var(--rt-${c.maxIdx})" title="${RATING_LEVELS[c.maxIdx].label}"></span>${RATING_LEVELS[c.maxIdx].label}`
+    : 'sin datos';
+  return `${c.filled}/${c.posibles} franjas (${c.pct}%) · ${dominante}`;
+}
+
+function renderFranjas(mes0, dia, wIdx) {
+  const calDia = getCalificacionesDia(mes0, dia);
+  return FRANJAS.map(fr => {
+    const valor = calDia[fr.idx];
+    const chips = RATING_LEVELS.map(lvl => {
+      const id = `cal-${mes0}-${dia}-${fr.idx}-${lvl.value}`;
+      const checked = valor === lvl.value ? ' checked' : '';
+      return `<input type="radio" class="rating-chip" data-lvl="${lvl.value}" id="${id}" name="cal-${mes0}-${dia}-${fr.idx}" value="${lvl.value}"${checked} onchange="seleccionarCalificacion(${mes0},${dia},${fr.idx},${lvl.value},${wIdx})"><label class="rating-chip-label" data-lvl="${lvl.value}" for="${id}" title="${lvl.label}">${lvl.abbr}</label>`;
+    }).join('');
+    return `
+      <div class="franja-row">
+        <span class="franja-label">${fr.label}</span>
+        <div class="rating-options">${chips}</div>
+        <button type="button" class="franja-clear-btn" title="Borrar calificación de esta franja" onclick="event.stopPropagation(); limpiarCalificacion(${mes0},${dia},${fr.idx},${wIdx})">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function seleccionarCalificacion(mes0, dia, franjaIdx, valor, wIdx) {
+  guardarCalificacionStorage(mes0, dia, franjaIdx, valor);
+  actualizarUICalificacion(mes0, dia, wIdx);
+  showToast(`✓ ${FRANJAS[franjaIdx].label} → ${RATING_LEVELS[valor].label}`);
+}
+
+function limpiarCalificacion(mes0, dia, franjaIdx, wIdx) {
+  borrarCalificacionStorage(mes0, dia, franjaIdx);
+  document.querySelectorAll(`input[name="cal-${mes0}-${dia}-${franjaIdx}"]`).forEach(r => r.checked = false);
+  actualizarUICalificacion(mes0, dia, wIdx);
+  showToast(`Franja ${FRANJAS[franjaIdx].label} sin calificar`);
+}
+
+function actualizarUICalificacion(mes0, dia, wIdx) {
+  const dayBlock = document.getElementById(`day-${mes0}-${dia}`);
+  if (dayBlock) {
+    const info = dayBlock.querySelector('.day-info');
+    let badge = dayBlock.querySelector('.day-rating-badge');
+    const avg = getDayAvgRating(mes0, dia);
+    if (avg !== null) {
+      const lvl = Math.round(avg);
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'day-rating-badge';
+        info.appendChild(badge);
+      }
+      badge.title = `Promedio del día: ${RATING_LEVELS[lvl].label}`;
+      badge.style.borderColor = `var(--rt-${lvl})`;
+      badge.innerHTML = `<span class="day-rating-dot" style="background:var(--rt-${lvl})"></span>`;
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+  if (typeof wIdx === 'number' && mesActivo !== null) {
+    const badge = document.getElementById(`wc-${mesActivo}-${wIdx}`);
+    if (badge) badge.innerHTML = weekCoverageHTML(mesActivo, wIdx);
+  }
+  if (mesActivo !== null) renderGraficoMes(mesActivo);
+  if (tablaMesAbierta && mesActivo !== null) renderTablaMes(mesActivo);
+}
+
+// ─── CONSTRUCCIÓN DE CONTROLES (vista de gráfico / agrupamiento) ──────────────
+function construirControlesChart(scopeId) {
+  const agrup        = scopeId === 'mes' ? chartAgrupacionMes : chartAgrupacionAnio;
+  const setterAgrup  = scopeId === 'mes' ? 'setChartAgrupacionMes' : 'setChartAgrupacionAnio';
+  const opcionesAgrup = scopeId === 'mes' ? [['dia','Día'],['semana','Semana']] : [['mes','Mes'],['semana','Semana']];
+  const vistas = [['barras','📊 Barras'],['barras-h','📊 Horizontal'],['torta','🥧 Circular'],['porcentaje','📈 % Distribución']];
+  const mostrarAgrup = (chartVista === 'barras' || chartVista === 'barras-h');
+  return `
+    <div class="chart-controls">
+      <div class="chart-control-group">
+        <span class="chart-control-label">Vista:</span>
+        ${vistas.map(([v,label]) => `<button class="chart-toggle-btn${chartVista===v?' active':''}" onclick="setChartVista('${v}')">${label}</button>`).join('')}
+      </div>
+      ${mostrarAgrup ? `
+      <div class="chart-control-group">
+        <span class="chart-control-label">Agrupar por:</span>
+        ${opcionesAgrup.map(([v,label]) => `<button class="chart-toggle-btn${agrup===v?' active':''}" onclick="${setterAgrup}('${v}')">${label}</button>`).join('')}
+      </div>` : ''}
+      <div class="chart-control-group">
+        <span class="chart-control-label">Calcular por:</span>
+        <button class="chart-toggle-btn${chartMetrica==='franja'?' active':''}" onclick="setChartMetrica('franja')" title="Cada franja de 4hs cuenta por separado">Franja</button>
+        <button class="chart-toggle-btn${chartMetrica==='dia'?' active':''}" onclick="setChartMetrica('dia')" title="Cada día cuenta una vez, según su promedio">Día</button>
+      </div>
+    </div>`;
+}
+
+function setChartMetrica(v) {
+  chartMetrica = v;
+  if (mesActivo !== null) renderGraficoMes(mesActivo);
+  if (vistaAnualAbierta) renderVistaAnual();
+}
+
+function setChartVista(v) {
+  chartVista = v;
+  if (mesActivo !== null) renderGraficoMes(mesActivo);
+  if (vistaAnualAbierta) renderVistaAnual();
+}
+function setChartAgrupacionMes(v) {
+  chartAgrupacionMes = v;
+  if (mesActivo !== null) renderGraficoMes(mesActivo);
+}
+function setChartAgrupacionAnio(v) {
+  chartAgrupacionAnio = v;
+  if (vistaAnualAbierta) renderVistaAnual();
+}
+
+function toggleVistaAnual() {
+  vistaAnualAbierta = !vistaAnualAbierta;
+  const panel = document.getElementById('annual-panel');
+  const btn   = document.getElementById('btn-annual-toggle');
+  if (vistaAnualAbierta) {
+    panel.classList.add('visible');
+    btn.textContent = '✕ Ocultar vista anual';
+    renderVistaAnual();
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    panel.classList.remove('visible');
+    btn.textContent = '📆 Ver todos los gráficos del año en pantalla';
+  }
+}
+
+// ─── CONSTRUCTORES SVG (4 tipos de gráfico) ───────────────────────────────────
+function construirChartSVG(serieStats, tipoVista, compact = false, distStats = null) {
+  const dstats = distStats || serieStats;
+  switch (tipoVista) {
+    case 'barras-h':   return svgBarrasHorizontales(serieStats, compact);
+    case 'torta':      return svgTorta(dstats, compact);
+    case 'porcentaje': return svgPorcentaje(dstats, compact);
+    default:           return svgBarrasVerticales(serieStats, compact);
+  }
+}
+
+function svgBarrasVerticales(stats, compact = false) {
+  const { categorias, valores } = stats;
+  const n = categorias.length;
+  const barWBase = compact ? 6 : 16;
+  const chartH = compact ? 95 : 190;
+  const padL = compact ? 24 : 44, padB = compact ? 18 : 28, padT = 10;
+  const plotH = chartH - padT - padB;
+  const levelY = v => padT + plotH - (v / 4) * plotH;
+  const fsAbbr = compact ? 4.2 : 7, fsCat = compact ? 4.3 : 6.8;
+
+  // Separación entre barras: se adapta al ancho del texto más largo del eje horizontal
+  // (evita que etiquetas como "S1 (1-7)" se superpongan entre sí, como pasaba con semanas)
+  const charW = fsCat * 0.62;
+  const maxLabelLen = Math.max(1, ...categorias.map(c => String(c).length));
+  const slotW = Math.max(barWBase + (compact ? 3 : 8), maxLabelLen * charW + (compact ? 3 : 6));
+  const barW = Math.min(barWBase, slotW * 0.6);
+  const chartW = Math.max(compact ? 200 : 260, padL + n * slotW + 16);
+
+  let gridLines = '';
+  RATING_LEVELS.forEach((lvl, i) => {
+    const y = levelY(i);
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${chartW-16}" y2="${y}" stroke="var(--border)" stroke-opacity="0.6" stroke-width="1"/>`;
+    gridLines += `<text x="${padL-4}" y="${y+2.5}" text-anchor="end" font-family="Share Tech Mono, monospace" font-size="${fsAbbr}" fill="var(--text-dim)">${lvl.abbr}</text>`;
+  });
+
+  let bars = '';
+  valores.forEach((v, i) => {
+    const cx = padL + i * slotW + slotW / 2;
+    if (v === null || v === undefined) {
+      bars += `<line x1="${cx}" y1="${padT+plotH-2}" x2="${cx}" y2="${padT+plotH}" stroke="var(--text-dim)" stroke-width="1" stroke-dasharray="1,2"><title>${categorias[i]}: sin registros</title></line>`;
+    } else {
+      const lvl = Math.max(0, Math.min(4, Math.round(v)));
+      const y = levelY(v);
+      const hgt = Math.max(padT + plotH - y, 1.5);
+      bars += `<rect x="${cx-barW/2}" y="${y}" width="${barW}" height="${hgt}" fill="var(--rt-${lvl})" opacity="0.85"><title>${categorias[i]}: ${RATING_LEVELS[lvl].label}</title></rect>`;
+    }
+    const mostrarEtiqueta = compact
+      ? (i === 0 || i === n - 1 || i % Math.max(1, Math.ceil(n / 4)) === 0)
+      : (n > 20 ? (i % 2 === 0 || i === 0 || i === n - 1) : true);
+    if (mostrarEtiqueta) {
+      bars += `<text x="${cx}" y="${padT+plotH+(compact?9:13)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="${fsCat}" fill="var(--text-dim)">${categorias[i]}</text>`;
+    }
+  });
+
+  return `<svg viewBox="0 0 ${chartW} ${chartH}" width="${chartW}" height="${chartH}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+    ${gridLines}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="var(--border2)" stroke-width="1"/>
+    <line x1="${padL}" y1="${padT+plotH}" x2="${chartW-16}" y2="${padT+plotH}" stroke="var(--border2)" stroke-width="1"/>
+    ${bars}
+  </svg>`;
+}
+
+function svgBarrasHorizontales(stats, compact = false) {
+  const { categorias, valores } = stats;
+  const n = categorias.length;
+  const rowH = compact ? 10 : 15;
+  const padTop = compact ? 14 : 20, padBottom = 6;
+  const chartH = padTop + n * rowH + padBottom;
+  const chartW = compact ? 230 : 560;
+  const padL = compact ? 44 : 68;
+  const plotW = chartW - padL - 10;
+  const levelX = v => padL + (v / 4) * plotW;
+
+  let gridLines = '';
+  RATING_LEVELS.forEach((lvl, i) => {
+    const x = levelX(i);
+    gridLines += `<line x1="${x}" y1="${padTop-4}" x2="${x}" y2="${chartH-padBottom}" stroke="var(--border)" stroke-opacity="0.5" stroke-width="1"/>`;
+    gridLines += `<text x="${x}" y="${padTop-6}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="${compact?4.3:6}" fill="var(--text-dim)">${lvl.abbr}</text>`;
+  });
+
+  let bars = '';
+  valores.forEach((v, i) => {
+    const y = padTop + i * rowH;
+    bars += `<text x="${padL-4}" y="${y+rowH*0.68}" text-anchor="end" font-family="Share Tech Mono, monospace" font-size="${compact?4.3:6}" fill="var(--text-dim)">${categorias[i]}</text>`;
+    if (v === null || v === undefined) {
+      bars += `<line x1="${padL-1}" y1="${y+rowH/2}" x2="${padL+2}" y2="${y+rowH/2}" stroke="var(--text-dim)" stroke-width="1" stroke-dasharray="1,2"><title>${categorias[i]}: sin registros</title></line>`;
+    } else {
+      const lvl = Math.max(0, Math.min(4, Math.round(v)));
+      const x2 = levelX(v);
+      const barH = Math.max(rowH * 0.55, 3);
+      bars += `<rect x="${padL}" y="${y+(rowH-barH)/2}" width="${Math.max(x2-padL,1.5)}" height="${barH}" fill="var(--rt-${lvl})" opacity="0.85"><title>${categorias[i]}: ${RATING_LEVELS[lvl].label}</title></rect>`;
+    }
+  });
+
+  return `<svg viewBox="0 0 ${chartW} ${chartH}" width="${chartW}" height="${chartH}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+    ${gridLines}
+    <line x1="${padL}" y1="${padTop-4}" x2="${padL}" y2="${chartH-padBottom}" stroke="var(--border2)" stroke-width="1"/>
+    ${bars}
+  </svg>`;
+}
+
+function svgTorta(stats, compact = false) {
+  const { distCounts, total } = stats;
+  const size = compact ? 130 : 210;
+  const cx = size / 2, cy = size / 2, r = size * 0.4, rInner = r * 0.55;
+  if (!total) {
+    return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="2" stroke-dasharray="4,4"/>
+      <text x="${cx}" y="${cy+2}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="7" fill="var(--text-dim)">Sin datos</text>
+    </svg>`;
+  }
+  const polar = (ang, radius) => {
+    const rad = (ang - 90) * Math.PI / 180;
+    return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) };
+  };
+  let anguloActual = 0, paths = '', labels = '';
+  distCounts.forEach((c, i) => {
+    if (!c) return;
+    const pct = c / total;
+    const angInicio = anguloActual, angFin = anguloActual + pct * 360;
+    const p1 = polar(angInicio, r), p2 = polar(angFin, r);
+    const largeArc = (angFin - angInicio) > 180 ? 1 : 0;
+    paths += `<path d="M ${cx} ${cy} L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} Z" fill="var(--rt-${i})" opacity="0.9"><title>${RATING_LEVELS[i].label}: ${Math.round(pct*100)}%</title></path>`;
+    if (pct >= 0.06) {
+      const mid = polar((angInicio + angFin) / 2, r * 0.72);
+      labels += `<text x="${mid.x.toFixed(2)}" y="${mid.y.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="${compact?5.5:7.5}" fill="#fff" font-weight="700">${Math.round(pct*100)}%</text>`;
+    }
+    anguloActual = angFin;
+  });
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    ${paths}
+    <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="var(--panel)"/>
+    ${labels}
+  </svg>`;
+}
+
+function svgPorcentaje(stats, compact = false) {
+  const { distCounts, total } = stats;
+  const width = compact ? 220 : 560;
+  const height = compact ? 32 : 46;
+  const barH = compact ? 15 : 22;
+  const y = (height - barH) / 2;
+  if (!total) {
+    return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="${y}" width="${width-2}" height="${barH}" fill="none" stroke="var(--border)" stroke-dasharray="4,4"/>
+      <text x="${width/2}" y="${y+barH/2+3}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="7" fill="var(--text-dim)">Sin datos calificados</text>
+    </svg>`;
+  }
+  let x = 0, segs = '';
+  distCounts.forEach((c, i) => {
+    if (!c) return;
+    const w = (c / total) * width;
+    segs += `<rect x="${x.toFixed(2)}" y="${y}" width="${w.toFixed(2)}" height="${barH}" fill="var(--rt-${i})" opacity="0.9"><title>${RATING_LEVELS[i].label}: ${Math.round(c/total*100)}%</title></rect>`;
+    if (w > width * 0.07) {
+      segs += `<text x="${(x+w/2).toFixed(2)}" y="${y+barH/2+3}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="${compact?5.5:7.5}" fill="#fff" font-weight="700">${Math.round(c/total*100)}%</text>`;
+    }
+    x += w;
+  });
+  return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0.5" y="${y}" width="${width-1}" height="${barH}" fill="none" stroke="var(--border2)" stroke-width="0.5"/>
+    ${segs}
+  </svg>`;
+}
+
+// ─── GRÁFICO DE PREDOMINIO DE RUIDO (por mes) ─────────────────────────────────
+function renderGraficoMes(mes0) {
+  const cont = document.getElementById('chart-section');
+  if (!cont) return;
+
+  const totalDias = diasEnMes(mes0);
+  const stats = chartAgrupacionMes === 'semana' ? statsFranjasMesPorSemana(mes0) : statsFranjasMes(mes0);
+
+  // Cobertura y "días con registro" del encabezado: siempre a nivel de día
+  const cal = cargarCalificaciones();
+  let diasConRegistro = 0;
+  for (let d = 1; d <= totalDias; d++) {
+    for (let f = 0; f < 6; f++) { if (cal[`${mes0}_${d}_${f}`] !== undefined) { diasConRegistro++; break; } }
+  }
+
+  const controles = construirControlesChart('mes');
+
+  if (!stats.total) {
+    cont.innerHTML = `
+      ${controles}
+      <div class="chart-title">📊 Predominio de ruido — ${MESES[mes0]}</div>
+      <div class="chart-empty">Todavía no hay franjas calificadas este mes. Marcá algún día para ver el gráfico acá.</div>
+      <div class="chart-note">ℹ️ Los porcentajes se calculan sobre el total de franjas <em>calificadas</em> en el período (no sobre las posibles), y la cobertura indica cuántas de las 6 franjas por día se llegaron a registrar.</div>`;
+    return;
+  }
+
+  // Distribución usada para leyenda / torta / % / cobertura-predominio, según el check "Calcular por"
+  const statsDist = chartMetrica === 'dia'
+    ? statsNivelPorDiaLista(listaDiasDeMes(mes0))
+    : { distCounts: stats.distCounts, total: stats.total, posibles: stats.posibles };
+
+  const svg = construirChartSVG(stats, chartVista, false, statsDist);
+  const pct = statsDist.distCounts.map(c => statsDist.total ? Math.round((c / statsDist.total) * 100) : 0);
+  const maxIdx = statsDist.total ? pct.indexOf(Math.max(...pct)) : -1;
+  const coberturaPct = statsDist.posibles ? Math.round((statsDist.total / statsDist.posibles) * 100) : 0;
+  const unidad = chartMetrica === 'dia' ? 'días con registro' : 'franjas registradas';
+
+  const legend = RATING_LEVELS.map((lvl, i) => `
+    <div class="chart-legend-item"><span class="chart-legend-swatch" style="background:var(--rt-${i})"></span>${lvl.label}: ${pct[i]}%</div>`).join('');
+
+  const entradasMesFlat = [];
+  for (let d = 1; d <= totalDias; d++) Object.values(getEntriesForDay(mes0, d)).forEach(e => entradasMesFlat.push(e));
+  const fuentesTxt = fuentesTopTexto(entradasMesFlat);
+
+  cont.innerHTML = `
+    ${controles}
+    <div class="chart-title">📊 Predominio de ruido — ${MESES[mes0]} ${YEAR}</div>
+    <div class="chart-svg-wrap">${svg}</div>
+    <div class="chart-legend">${legend}</div>
+    <div class="chart-summary">
+      <strong>Sobre ${totalDias} días, ${diasConRegistro} con registro — predominio: <span style="color:var(--rt-${maxIdx})">${RATING_LEVELS[maxIdx].label}</span> (${pct[maxIdx]}%).</strong><br>
+      Cobertura: ${statsDist.total}/${statsDist.posibles} ${unidad} (${coberturaPct}%). Predominio: ${RATING_LEVELS[maxIdx].label} (${pct[maxIdx]}% de las ${unidad}).<br>
+      Fuentes de ruido más citadas en notas horarias: ${fuentesTxt}.
+    </div>
+    <div class="chart-note">
+      ℹ️ Los porcentajes se calculan sobre el total de ${unidad} (no sobre las posibles). El check "Calcular por" define si cada franja de 4hs cuenta por separado, o si cada día cuenta una sola vez según su promedio.
+    </div>`;
+}
+
+// ─── VISTA ANUAL EN PANTALLA (opcional): gráfico del año + mini-gráficos por mes ──
+function renderVistaAnual() {
+  const panel = document.getElementById('annual-panel');
+  if (!panel) return;
+
+  const statsAnio = chartAgrupacionAnio === 'semana' ? statsFranjasAnioPorSemana() : statsFranjasAnio();
+  const totalDiasAnio = MESES.reduce((acc, _, m) => acc + diasEnMes(m), 0);
+
+  const cal = cargarCalificaciones();
+  let diasConRegistroAnio = 0;
+  MESES.forEach((_, m) => {
+    for (let d = 1; d <= diasEnMes(m); d++) {
+      for (let f = 0; f < 6; f++) { if (cal[`${m}_${d}_${f}`] !== undefined) { diasConRegistroAnio++; break; } }
+    }
+  });
+
+  const controles = construirControlesChart('anio');
+
+  let entradasAnioFlat = [];
+  MESES.forEach((_, m) => { for (let d = 1; d <= diasEnMes(m); d++) Object.values(getEntriesForDay(m, d)).forEach(e => entradasAnioFlat.push(e)); });
+  const fuentesTxt = fuentesTopTexto(entradasAnioFlat);
+
+  const statsDistAnio = chartMetrica === 'dia'
+    ? statsNivelPorDiaLista(listaDiasDelAnio())
+    : { distCounts: statsAnio.distCounts, total: statsAnio.total, posibles: statsAnio.posibles };
+  const unidadAnio = chartMetrica === 'dia' ? 'días con registro' : 'franjas registradas';
+
+  let resumenAnio;
+  if (!statsDistAnio.total) {
+    resumenAnio = `<div class="chart-empty">Todavía no hay franjas calificadas en ${YEAR}.</div>`;
+  } else {
+    const pct = statsDistAnio.distCounts.map(c => Math.round((c / statsDistAnio.total) * 100));
+    const maxIdx = pct.indexOf(Math.max(...pct));
+    const coberturaPct = Math.round((statsDistAnio.total / statsDistAnio.posibles) * 100);
+    const svgAnio = construirChartSVG(statsAnio, chartVista, false, statsDistAnio);
+    const legend = RATING_LEVELS.map((lvl, i) => `
+      <div class="chart-legend-item"><span class="chart-legend-swatch" style="background:var(--rt-${i})"></span>${lvl.label}: ${pct[i]}%</div>`).join('');
+    resumenAnio = `
+      <div class="chart-svg-wrap">${svgAnio}</div>
+      <div class="chart-legend">${legend}</div>
+      <div class="chart-summary">
+        <strong>Sobre ${totalDiasAnio} días, ${diasConRegistroAnio} con registro — predominio: <span style="color:var(--rt-${maxIdx})">${RATING_LEVELS[maxIdx].label}</span> (${pct[maxIdx]}%).</strong><br>
+        Cobertura: ${statsDistAnio.total}/${statsDistAnio.posibles} ${unidadAnio} (${coberturaPct}%). Predominio: ${RATING_LEVELS[maxIdx].label} (${pct[maxIdx]}% de las ${unidadAnio}).<br>
+        Fuentes de ruido más citadas en notas horarias: ${fuentesTxt}.
+      </div>`;
+  }
+
+  const miniCards = MESES.map((nombreMes, m) => {
+    const statsMes = statsFranjasMes(m); // las mini-cards siempre son por día, para que se lean bien
+    if (!statsMes.total) {
+      return `<div class="month-mini-card"><div class="month-mini-title">${nombreMes}</div><div class="month-mini-empty">Sin registros</div></div>`;
+    }
+    const statsDistMes = chartMetrica === 'dia'
+      ? statsNivelPorDiaLista(listaDiasDeMes(m))
+      : { distCounts: statsMes.distCounts, total: statsMes.total, posibles: statsMes.posibles };
+    const pctM = statsDistMes.distCounts.map(c => statsDistMes.total ? Math.round((c / statsDistMes.total) * 100) : 0);
+    const maxIdxM = statsDistMes.total ? pctM.indexOf(Math.max(...pctM)) : -1;
+    const svgM = construirChartSVG(statsMes, chartVista, true, statsDistMes);
+    const unidadM = chartMetrica === 'dia' ? 'días' : 'franjas';
+    return `<div class="month-mini-card">
+      <div class="month-mini-title">${nombreMes}</div>
+      <div class="chart-svg-wrap">${svgM}</div>
+      <div class="month-mini-summary">Predominio: <strong style="color:var(--rt-${maxIdxM})">${RATING_LEVELS[maxIdxM].label}</strong> (${pctM[maxIdxM]}%) · ${statsDistMes.total}/${statsDistMes.posibles} ${unidadM}</div>
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="annual-panel-inner">
+      <div class="chart-title">📆 Predominio de ruido — Todo ${YEAR}</div>
+      ${controles}
+      ${resumenAnio}
+      <div class="chart-note">ℹ️ Los porcentajes se calculan sobre el total de franjas calificadas del período, no sobre las posibles.</div>
+      <div class="month-mini-grid">${miniCards}</div>
+    </div>`;
+}
+
+// ─── TABLA DE CALIFICACIONES POR DÍA (agrupada por semana, columnas = franjas) ─
+let tablaMesAbierta = false;
+
+function construirFilasTablaMes(mes0) {
+  const semanas = getWeeksOfMonth(mes0);
+  const filas = [];
+  semanas.forEach((dias, i) => {
+    dias.forEach(d => {
+      const calDia = getCalificacionesDia(mes0, d);
+      const franjas = FRANJAS.map(f => calDia[f.idx] !== undefined ? RATING_LEVELS[calDia[f.idx]].abbr : '—');
+      filas.push({
+        semana: `S${i + 1}`,
+        weekIdx: i,
+        dia: d,
+        fecha: `${String(d).padStart(2,'0')} ${DIAS_SEMANA[diaSemana(mes0, d)]}`,
+        franjas
+      });
+    });
+  });
+  return filas;
+}
+
+function toggleTablaMes() {
+  if (mesActivo === null) { showToast('⚠️ Primero abrí un mes'); return; }
+  tablaMesAbierta = !tablaMesAbierta;
+  const panel = document.getElementById('tabla-panel');
+  const btn   = document.getElementById('btn-tabla-toggle');
+  if (tablaMesAbierta) {
+    panel.classList.add('visible');
+    btn.textContent = '✕ Ocultar tabla';
+    renderTablaMes(mesActivo);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    panel.classList.remove('visible');
+    btn.textContent = '📋 Ver tabla de calificaciones del mes';
+  }
+}
+
+function renderTablaMes(mes0) {
+  const panel = document.getElementById('tabla-panel');
+  if (!panel) return;
+  const filas = construirFilasTablaMes(mes0);
+
+  const filasHTML = filas.map(f => {
+    const celdas = f.franjas.map(abbr => {
+      const nivel = RATING_LEVELS.find(l => l.abbr === abbr);
+      const style = nivel ? ` style="background:var(--rt-${nivel.value});color:#fff;"` : '';
+      return `<td class="tabla-celda"${style} title="${nivel ? nivel.label : 'Sin calificar'}">${abbr}</td>`;
+    }).join('');
+    return `<tr class="tabla-fila semana-${f.weekIdx % 2}">
+      <td class="tabla-semana">${f.semana}</td>
+      <td class="tabla-fecha">${f.fecha}</td>
+      ${celdas}
+    </tr>`;
+  }).join('');
+
+  const leyenda = RATING_LEVELS.map((lvl, i) => `
+    <span class="tabla-leyenda-item"><span class="tabla-leyenda-swatch" style="background:var(--rt-${i})"></span>${lvl.abbr} · ${lvl.label}</span>`).join('');
+
+  panel.innerHTML = `
+    <div class="tabla-panel-inner">
+      <div class="tabla-header-row">
+        <div class="chart-title">📋 Tabla de calificaciones — ${MESES[mes0]} ${YEAR}</div>
+        <div class="tabla-export-btns">
+          <button class="btn-tabla-export" onclick="exportarTablaCSV(${mes0})">📥 Exportar CSV</button>
+          <button class="btn-tabla-export btn-tabla-export-pdf" onclick="exportarTablaPDF(${mes0})">📄 Exportar PDF</button>
+        </div>
+      </div>
+      <div class="tabla-leyenda">${leyenda}</div>
+      <div class="tabla-scroll">
+        <table class="tabla-mes">
+          <thead>
+            <tr>
+              <th rowspan="2">Semana</th><th rowspan="2">Día</th>
+              <th colspan="6">Franja horaria</th>
+            </tr>
+            <tr>
+              ${FRANJAS.map(f => `<th>${f.label}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>${filasHTML}</tbody>
+        </table>
+      </div>
+      <div class="chart-note">ℹ️ Cada celda muestra la calificación de esa franja horaria: NP (No perceptible), B (Bajo), M (Medio), A (Alto), MA (Muy alto). Las celdas con "—" indican que esa franja no fue calificada.</div>
+    </div>`;
+}
+
+function exportarTablaCSV(mes0) {
+  const filas = construirFilasTablaMes(mes0);
+  const encabezado = ['Semana', 'Día', ...FRANJAS.map(f => `Franja horaria ${f.label}`)];
+  let csv = encabezado.join(';') + '\n';
+  filas.forEach(f => {
+    csv += [f.semana, f.fecha, ...f.franjas].join(';') + '\n';
+  });
+  csv += '\nReferencia;NP=No perceptible;B=Bajo;M=Medio;A=Alto;MA=Muy alto\n';
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bitacora_tabla_${MESES_ABR[mes0]}_${YEAR}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✓ Tabla exportada a CSV');
+}
+
+function exportarTablaPDF(mes0) {
+  if (typeof window.jspdf === 'undefined') {
+    showToast('⚠️ Cargando librería, reintentá en un momento', 4000); return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('landscape', 'mm', 'a4');
+  const marginX = 14;
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 16;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(20, 30, 60);
+  doc.text(`Tabla de calificaciones de ruido — ${MESES[mes0]} ${YEAR}`, marginX, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 110, 140);
+  doc.text('Bitácora de Ruido · Sauce Viejo', marginX, y);
+  y += 6;
+
+  // Cuadritos de referencia (leyenda de colores)
+  let lx = marginX;
+  doc.setFontSize(7.5);
+  RATING_LEVELS.forEach((lvl, i) => {
+    const c = PDF_RATING_COLORS[i];
+    doc.setFillColor(c[0], c[1], c[2]);
+    doc.rect(lx, y - 2.6, 3.4, 3.4, 'F');
+    doc.setTextColor(70, 80, 105);
+    const txt = `${lvl.abbr} = ${lvl.label}`;
+    doc.text(txt, lx + 4.6, y);
+    lx += 4.6 + doc.getTextWidth(txt) + 8;
+  });
+  y += 7;
+
+  const filas = construirFilasTablaMes(mes0);
+  const body = filas.map(f => [f.semana, f.fecha, ...f.franjas]);
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: marginX, right: marginX },
+    head: [
+      [
+        { content: 'Semana', rowSpan: 2, styles: { valign: 'middle' } },
+        { content: 'Día', rowSpan: 2, styles: { valign: 'middle' } },
+        { content: 'Franja horaria', colSpan: 6, styles: { halign: 'center' } }
+      ],
+      FRANJAS.map(f => f.label)
+    ],
+    body,
+    theme: 'grid',
+    styles: { font: 'helvetica', fontSize: 8, halign: 'center', valign: 'middle', lineColor: [210, 215, 230], lineWidth: 0.2 },
+    headStyles: { fillColor: [26, 31, 46], textColor: [255, 215, 0], fontStyle: 'bold', fontSize: 7.5 },
+    columnStyles: {
+      0: { cellWidth: 18, fontStyle: 'bold', textColor: [176, 128, 0] },
+      1: { cellWidth: 30, halign: 'left' }
+    },
+    didParseCell: (data) => {
+      if (data.section !== 'body') return;
+      if (data.column.index < 2) return;
+      const abbr = data.cell.raw;
+      const nivel = RATING_LEVELS.find(l => l.abbr === abbr);
+      if (nivel) {
+        const c = PDF_RATING_COLORS[nivel.value];
+        data.cell.styles.fillColor = c;
+        data.cell.styles.textColor = [255, 255, 255];
+        data.cell.styles.fontStyle = 'bold';
+      } else {
+        data.cell.styles.textColor = [190, 195, 210];
+      }
+    }
+  });
+
+  let yFinal = doc.lastAutoTable.finalY + 6;
+  if (yFinal > doc.internal.pageSize.getHeight() - 16) yFinal = doc.internal.pageSize.getHeight() - 16;
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(140, 148, 170);
+  doc.text('NP = No perceptible · B = Bajo · M = Medio · A = Alto · MA = Muy alto · "—" = franja sin calificar', marginX, yFinal);
+
+  const totalPag = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPag; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 160, 180);
+    doc.text(`Bitácora Ruido Sauce Viejo ${YEAR}  ·  Pág ${i}/${totalPag}`, pageW / 2, doc.internal.pageSize.getHeight() - 6, { align: 'center' });
+  }
+
+  const ts = new Date();
+  const pad2 = n => String(n).padStart(2, '0');
+  const fechaHora = `${ts.getFullYear()}${pad2(ts.getMonth()+1)}${pad2(ts.getDate())}_${pad2(ts.getHours())}${pad2(ts.getMinutes())}`;
+  doc.save(`bitacora_tabla_${MESES_ABR[mes0]}_${YEAR}_${fechaHora}.pdf`);
+  showToast('✓ Tabla exportada a PDF');
 }
 
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
@@ -1106,14 +2334,18 @@ function abrirMes(m) {
     wBlock.innerHTML = `
       <div class="week-header" id="wh-${m}-${wIdx}" onclick="toggleSemana(${m},${wIdx})">
         <span class="week-label">Semana ${primerReal}-${ultimoReal} ${MESES[m]}</span>
+        <span class="week-coverage" id="wc-${m}-${wIdx}">${weekCoverageHTML(m, wIdx)}</span>
         <span class="week-entries-count">${entrSemana > 0 ? entrSemana + ' reg' + (entrSemana > 1 ? 's' : '') : 'sin'}</span>
         <span class="week-chevron">▼</span>
       </div>
       <div class="week-days" id="wd-${m}-${wIdx}">
-        ${semana.map(d => d ? renderDia(m, d) : '').join('')}
+        ${semana.map(d => d ? renderDia(m, d, wIdx) : '').join('')}
       </div>`;
     container.appendChild(wBlock);
   });
+
+  renderGraficoMes(m);
+  if (tablaMesAbierta) renderTablaMes(m);
 
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -1129,7 +2361,7 @@ function abrirMes(m) {
 }
 
 // ─── RENDER DÍA (DESPLEGABLE) ─────────────────────────────────────────────────
-function renderDia(mes0, dia) {
+function renderDia(mes0, dia, wIdx) {
   const h           = hoy();
   const esHoy       = (h.year === YEAR && h.mes === mes0 && h.dia === dia);
   const nombreDia   = DIAS_SEMANA[diaSemana(mes0, dia)];
@@ -1137,6 +2369,10 @@ function renderDia(mes0, dia) {
   const tieneEntrada = Object.keys(entries).length > 0;
   const summary     = getDaySummary(mes0, dia);
   const isOpen      = diaAbierto && diaAbierto.mes === mes0 && diaAbierto.dia === dia;
+  const avgRating   = getDayAvgRating(mes0, dia);
+  const ratingBadge = avgRating !== null
+    ? `<span class="day-rating-badge" style="border-color:var(--rt-${Math.round(avgRating)})" title="Promedio del día: ${RATING_LEVELS[Math.round(avgRating)].label}"><span class="day-rating-dot" style="background:var(--rt-${Math.round(avgRating)})"></span></span>`
+    : '';
 
   let filas = '';
   for (let hora = 0; hora < 24; hora++) {
@@ -1166,11 +2402,16 @@ function renderDia(mes0, dia) {
         <span class="day-number">${dia}</span>
         <span class="day-name">${nombreDia}</span>
         <span class="day-has-entry"></span>
+        ${ratingBadge}
       </div>
       <div class="day-summary">${summary || 'Sin registros'}</div>
       <span class="day-chevron">${isOpen ? '▲' : '▼'}</span>
     </div>
     <div class="day-horas${isOpen ? ' open' : ''}" id="dhors-${mes0}-${dia}">
+      <div class="rating-section">
+        <div class="rating-title">🔊 Calificación de ruido por franja horaria</div>
+        ${renderFranjas(mes0, dia, wIdx)}
+      </div>
       ${filas}
       <div class="day-save-row">
         <span class="day-saved-label" id="saved-${mes0}-${dia}">✓ Guardado</span>
@@ -1285,67 +2526,416 @@ function guardarDiaCompleto(mes0, dia) {
   renderMeses();
 }
 
+// ─── ESTADÍSTICAS DE FRANJAS PARA GRÁFICOS (día / semana / mes / año) ─────────
+function statsFranjasDia(mes0, dia) {
+  const calDia = getCalificacionesDia(mes0, dia);
+  const categorias = FRANJAS.map(f => f.label);
+  const valores = FRANJAS.map(f => calDia[f.idx] !== undefined ? calDia[f.idx] : null);
+  const distCounts = [0, 0, 0, 0, 0];
+  let total = 0;
+  valores.forEach(v => { if (v !== null) { distCounts[v]++; total++; } });
+  return { categorias, valores, distCounts, total, posibles: 6 };
+}
+
+function statsFranjasDias(listaDias) {
+  const cal = cargarCalificaciones();
+  const categorias = [], valores = [];
+  const distCounts = [0, 0, 0, 0, 0];
+  let total = 0;
+  listaDias.forEach(({ mes0, dia, label }) => {
+    categorias.push(label);
+    const vals = [];
+    for (let f = 0; f < 6; f++) {
+      const key = `${mes0}_${dia}_${f}`;
+      if (cal[key] !== undefined) { vals.push(cal[key]); distCounts[cal[key]]++; total++; }
+    }
+    valores.push(vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null);
+  });
+  return { categorias, valores, distCounts, total, posibles: listaDias.length * 6 };
+}
+
+function statsFranjasMes(mes0) {
+  const totalDias = diasEnMes(mes0);
+  const listaDias = [];
+  for (let d = 1; d <= totalDias; d++) listaDias.push({ mes0, dia: d, label: String(d) });
+  return statsFranjasDias(listaDias);
+}
+
+// Agrupa los días de un mes en semanas "de calendario" (igual que la grilla visual)
+function getWeeksOfMonth(mes0) {
+  const totalDias = diasEnMes(mes0);
+  const primerDia = diaSemana(mes0, 1);
+  let semanas = [], semanaActual = [];
+  for (let i = 0; i < primerDia; i++) semanaActual.push(null);
+  for (let d = 1; d <= totalDias; d++) {
+    semanaActual.push(d);
+    if (semanaActual.length === 7) { semanas.push(semanaActual); semanaActual = []; }
+  }
+  if (semanaActual.length) { while (semanaActual.length < 7) semanaActual.push(null); semanas.push(semanaActual); }
+  return semanas.map(s => s.filter(d => d !== null));
+}
+
+function statsFranjasMesPorSemana(mes0) {
+  const semanas = getWeeksOfMonth(mes0);
+  const cal = cargarCalificaciones();
+  const categorias = [], valores = [];
+  const distCounts = [0, 0, 0, 0, 0];
+  let total = 0, posibles = 0;
+  semanas.forEach((dias, i) => {
+    if (!dias.length) return;
+    categorias.push(`S${i + 1} (${dias[0]}-${dias[dias.length - 1]})`);
+    posibles += dias.length * 6;
+    const vals = [];
+    dias.forEach(d => {
+      for (let f = 0; f < 6; f++) {
+        const key = `${mes0}_${d}_${f}`;
+        if (cal[key] !== undefined) { vals.push(cal[key]); distCounts[cal[key]]++; total++; }
+      }
+    });
+    valores.push(vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null);
+  });
+  return { categorias, valores, distCounts, total, posibles };
+}
+
+function statsFranjasAnioPorSemana() {
+  const cal = cargarCalificaciones();
+  const categorias = [], valores = [];
+  const distCounts = [0, 0, 0, 0, 0];
+  let total = 0, posibles = 0;
+  MESES.forEach((_, m) => {
+    const semanas = getWeeksOfMonth(m);
+    semanas.forEach((dias, i) => {
+      if (!dias.length) return;
+      categorias.push(`${MESES_ABR[m]} S${i + 1}`);
+      posibles += dias.length * 6;
+      const vals = [];
+      dias.forEach(d => {
+        for (let f = 0; f < 6; f++) {
+          const key = `${m}_${d}_${f}`;
+          if (cal[key] !== undefined) { vals.push(cal[key]); distCounts[cal[key]]++; total++; }
+        }
+      });
+      valores.push(vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null);
+    });
+  });
+  return { categorias, valores, distCounts, total, posibles };
+}
+
+// Distribución alternativa "por día": cada día cuenta como 1 unidad, según su promedio redondeado
+// (en vez de contar cada franja de 4hs por separado). listaDias: [{mes0, dia}, ...]
+function statsNivelPorDiaLista(listaDias) {
+  const distCounts = [0, 0, 0, 0, 0];
+  let total = 0;
+  listaDias.forEach(({ mes0, dia }) => {
+    const avg = getDayAvgRating(mes0, dia);
+    if (avg !== null) { distCounts[Math.round(avg)]++; total++; }
+  });
+  return { distCounts, total, posibles: listaDias.length };
+}
+function listaDiasDeMes(mes0) {
+  const totalDias = diasEnMes(mes0);
+  return Array.from({ length: totalDias }, (_, i) => ({ mes0, dia: i + 1 }));
+}
+function listaDiasDelAnio() {
+  let lista = [];
+  MESES.forEach((_, m) => { lista = lista.concat(listaDiasDeMes(m)); });
+  return lista;
+}
+
+const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function statsFranjasAnio() {
+  const cal = cargarCalificaciones();
+  const categorias = [], valores = [];
+  const distCounts = [0, 0, 0, 0, 0];
+  let total = 0, posibles = 0;
+  MESES.forEach((_, m) => {
+    categorias.push(MESES_ABR[m]);
+    const totalDias = diasEnMes(m);
+    posibles += totalDias * 6;
+    const vals = [];
+    for (let d = 1; d <= totalDias; d++) {
+      for (let f = 0; f < 6; f++) {
+        const key = `${m}_${d}_${f}`;
+        if (cal[key] !== undefined) { vals.push(cal[key]); distCounts[cal[key]]++; total++; }
+      }
+    }
+    valores.push(vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null);
+  });
+  return { categorias, valores, distCounts, total, posibles };
+}
+
+// ─── FUENTES DE RUIDO CITADAS (a partir de las notas horarias) ────────────────
+function tallyFuentes(entriesFlat) {
+  const tally = {};
+  entriesFlat.forEach(e => { if (e && e.fuente) tally[e.fuente] = (tally[e.fuente] || 0) + 1; });
+  return Object.entries(tally).sort((a, b) => b[1] - a[1]);
+}
+
+function fuentesTopTexto(entriesFlat, max = 3) {
+  const arr = tallyFuentes(entriesFlat);
+  if (!arr.length) return 'sin fuentes registradas en las notas horarias de este período';
+  return arr.slice(0, max).map(([f, c]) => `${f} (${c})`).join(', ');
+}
+
+function franjasLineaPDF(mes0, dia) {
+  const calDia = getCalificacionesDia(mes0, dia);
+  return FRANJAS.map(f => `${f.label}: ${calDia[f.idx] !== undefined ? RATING_LEVELS[calDia[f.idx]].label : 'sin calificar'}`).join('  ·  ');
+}
+
+// ─── DIBUJO DE GRÁFICOS EN EL PDF (jsPDF, vectorial) ──────────────────────────
+const PDF_RATING_COLORS = [[42,138,0],[0,119,204],[176,128,0],[224,90,32],[179,38,30]];
+
+function dibujarGraficoPDF(doc, x, y, width, height, categorias, valores) {
+  const padL = 9, padB = 7;
+  const plotW = width - padL, plotH = height - padB;
+  const levelY = v => y + plotH - (v / 4) * plotH;
+
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  for (let lvl = 0; lvl <= 4; lvl++) {
+    const ly = levelY(lvl);
+    doc.setDrawColor(215, 220, 235);
+    doc.setLineWidth(0.15);
+    doc.line(x + padL, ly, x + width, ly);
+    doc.setTextColor(130, 140, 165);
+    doc.text(RATING_LEVELS[lvl].abbr, x + padL - 1.5, ly + 1.3, { align: 'right' });
+  }
+  doc.setDrawColor(150, 160, 180);
+  doc.setLineWidth(0.25);
+  doc.line(x + padL, y, x + padL, y + plotH);
+  doc.line(x + padL, y + plotH, x + width, y + plotH);
+
+  const n = categorias.length;
+  if (!n) return;
+  const areaW = plotW / n;
+  const barW = Math.max(1.2, Math.min(areaW * 0.55, 5.5));
+
+  valores.forEach((v, i) => {
+    const cx = x + padL + areaW * i + areaW / 2;
+    if (v === null || v === undefined) {
+      doc.setDrawColor(190, 195, 210);
+      doc.setLineWidth(0.35);
+      doc.line(cx, y + plotH - 1.2, cx, y + plotH);
+    } else {
+      const lvl = Math.max(0, Math.min(4, Math.round(v)));
+      const c = PDF_RATING_COLORS[lvl];
+      doc.setFillColor(c[0], c[1], c[2]);
+      const barY = levelY(v);
+      const barH = Math.max((y + plotH) - barY, 0.6);
+      doc.rect(cx - barW / 2, barY, barW, barH, 'F');
+    }
+    const skip = n > 18 && !(i === 0 || i === n - 1 || i % 2 === 0);
+    if (!skip) {
+      doc.setFontSize(5.3);
+      doc.setTextColor(130, 140, 165);
+      doc.text(String(categorias[i]), cx, y + plotH + 4.5, { align: 'center' });
+    }
+  });
+}
+
+function dibujarBarrasHorizontalesPDF(doc, x, y, width, height, categorias, valores) {
+  const n = categorias.length;
+  if (!n) return;
+  const padTop = 6, padLeft = 26;
+  const rowH = Math.max(2.4, (height - padTop - 3) / n);
+  const plotW = width - padLeft - 4;
+  const levelX = v => x + padLeft + (v / 4) * plotW;
+
+  doc.setFont('helvetica', 'normal');
+  for (let lvl = 0; lvl <= 4; lvl++) {
+    const lx = levelX(lvl);
+    doc.setDrawColor(215, 220, 235);
+    doc.setLineWidth(0.15);
+    doc.line(lx, y + padTop - 3, lx, y + height);
+    doc.setFontSize(5.3);
+    doc.setTextColor(130, 140, 165);
+    doc.text(RATING_LEVELS[lvl].abbr, lx, y + padTop - 4, { align: 'center' });
+  }
+
+  valores.forEach((v, i) => {
+    const ry = y + padTop + i * rowH;
+    doc.setFontSize(4.8);
+    doc.setTextColor(90, 100, 130);
+    doc.text(String(categorias[i]), x + padLeft - 2, ry + rowH * 0.72, { align: 'right' });
+    if (v === null || v === undefined) {
+      doc.setDrawColor(190, 195, 210);
+      doc.setLineWidth(0.3);
+      doc.line(x + padLeft - 1, ry + rowH / 2, x + padLeft + 2, ry + rowH / 2);
+    } else {
+      const lvl = Math.max(0, Math.min(4, Math.round(v)));
+      const c = PDF_RATING_COLORS[lvl];
+      doc.setFillColor(c[0], c[1], c[2]);
+      const barH = Math.max(rowH * 0.6, 1);
+      const x2 = levelX(v);
+      doc.rect(x + padLeft, ry + (rowH - barH) / 2, Math.max(x2 - (x + padLeft), 0.5), barH, 'F');
+    }
+  });
+}
+
+function dibujarTortaPDF(doc, cx, cy, r, distCounts, total) {
+  if (!total) {
+    doc.setDrawColor(200, 205, 220);
+    doc.setLineWidth(0.3);
+    doc.circle(cx, cy, r, 'S');
+    doc.setFontSize(6);
+    doc.setTextColor(150, 160, 180);
+    doc.text('Sin datos', cx, cy + 1, { align: 'center' });
+    return;
+  }
+  let anguloActual = 0;
+  distCounts.forEach((c, i) => {
+    if (!c) return;
+    const pct = c / total;
+    const angInicio = anguloActual, angFin = anguloActual + pct * 360;
+    const color = PDF_RATING_COLORS[i];
+    doc.setFillColor(color[0], color[1], color[2]);
+    const nSteps = Math.max(2, Math.round((angFin - angInicio) / 5));
+    const pts = [];
+    for (let s = 0; s <= nSteps; s++) {
+      const ang = angInicio + (angFin - angInicio) * (s / nSteps);
+      const rad = (ang - 90) * Math.PI / 180;
+      pts.push([cx + r * Math.cos(rad), cy + r * Math.sin(rad)]);
+    }
+    const lineArray = [[pts[0][0] - cx, pts[0][1] - cy]];
+    for (let s = 1; s < pts.length; s++) lineArray.push([pts[s][0] - pts[s-1][0], pts[s][1] - pts[s-1][1]]);
+    lineArray.push([cx - pts[pts.length-1][0], cy - pts[pts.length-1][1]]);
+    doc.lines(lineArray, cx, cy, [1, 1], 'F', true);
+    anguloActual = angFin;
+  });
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy, r * 0.5, 'F');
+}
+
+function dibujarPorcentajePDF(doc, x, y, width, barH, distCounts, total) {
+  doc.setDrawColor(200, 205, 220);
+  doc.setLineWidth(0.2);
+  doc.rect(x, y, width, barH, 'S');
+  if (!total) {
+    doc.setFontSize(6);
+    doc.setTextColor(150, 160, 180);
+    doc.text('Sin datos calificados', x + width / 2, y + barH / 2 + 1.5, { align: 'center' });
+    return;
+  }
+  let cx = x;
+  distCounts.forEach((c, i) => {
+    if (!c) return;
+    const w = (c / total) * width;
+    const color = PDF_RATING_COLORS[i];
+    doc.setFillColor(color[0], color[1], color[2]);
+    doc.rect(cx, y, w, barH, 'F');
+    if (w > width * 0.08) {
+      doc.setFontSize(6);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${Math.round((c/total)*100)}%`, cx + w / 2, y + barH / 2 + 1.5, { align: 'center' });
+    }
+    cx += w;
+  });
+}
+
+// Dispatcher: dibuja el gráfico según el tipo de vista elegido (barras / horizontal / torta / %)
+function dibujarChartPDF(doc, x, y, width, height, tipoVista, serieStats, distStats) {
+  const dstats = distStats || serieStats;
+  if (tipoVista === 'barras-h') dibujarBarrasHorizontalesPDF(doc, x, y, width, height, serieStats.categorias, serieStats.valores);
+  else if (tipoVista === 'torta') dibujarTortaPDF(doc, x + width / 2, y + height / 2, Math.min(width, height) / 2 - 2, dstats.distCounts, dstats.total);
+  else if (tipoVista === 'porcentaje') dibujarPorcentajePDF(doc, x, y + height / 2 - 5.5, width, 11, dstats.distCounts, dstats.total);
+  else dibujarGraficoPDF(doc, x, y, width, height, serieStats.categorias, serieStats.valores);
+}
+
+function alturaChartPDF(tipoVista, nCategorias) {
+  if (tipoVista === 'porcentaje') return 18;
+  if (tipoVista === 'torta') return 42;
+  if (tipoVista === 'barras-h') return Math.min(150, Math.max(30, nCategorias * 3.1 + 12));
+  return 40;
+}
+
+function dibujarResumenPDF(doc, x, y, width, distStats, fuentesTexto, metrica) {
+  const { distCounts, total, posibles } = distStats;
+  const pct = distCounts.map(c => total ? Math.round((c / total) * 100) : 0);
+  const maxIdx = total ? pct.indexOf(Math.max(...pct)) : -1;
+  const coberturaPct = posibles ? Math.round((total / posibles) * 100) : 0;
+  const unidad = metrica === 'dia' ? 'días con registro' : 'franjas registradas';
+
+  let cx = x;
+  doc.setFontSize(6.5);
+  RATING_LEVELS.forEach((lvl, i) => {
+    if (cx > x + width - 30) { cx = x; y += 4; }
+    const c = PDF_RATING_COLORS[i];
+    doc.setFillColor(c[0], c[1], c[2]);
+    doc.rect(cx, y, 2.6, 2.6, 'F');
+    doc.setTextColor(70, 80, 105);
+    const txt = `${lvl.label} ${pct[i]}%`;
+    doc.text(txt, cx + 3.6, y + 2.2);
+    cx += 3.6 + doc.getTextWidth(txt) + 6;
+  });
+  y += 6.5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(90, 100, 130);
+  const coberturaLinea = `Cobertura: ${total}/${posibles} ${unidad} (${coberturaPct}%).` +
+    (maxIdx >= 0 ? `  Predominio: ${RATING_LEVELS[maxIdx].label} (${pct[maxIdx]}% de las ${unidad}).` : '  Sin datos calificados en este período.');
+  doc.splitTextToSize(coberturaLinea, width).forEach(l => { doc.text(l, x, y); y += 4; });
+
+  doc.setFont('helvetica', 'italic');
+  const fuentesLinea = `Fuentes de ruido citadas en notas horarias: ${fuentesTexto}.`;
+  doc.splitTextToSize(fuentesLinea, width).forEach(l => { doc.text(l, x, y); y += 4; });
+
+  return y + 3;
+}
+
+function agregarSeccionGrafico(doc, marginX, y, opts) {
+  const width = 210 - marginX * 2;
+  const tipoVista = opts.tipoVista || 'barras';
+  const metrica = opts.metrica || 'franja';
+  const serieStats = { categorias: opts.categorias, valores: opts.valores };
+  const distStats = opts.distStats || { distCounts: opts.stats.distCounts, total: opts.stats.total, posibles: opts.stats.posibles };
+  const chartH = alturaChartPDF(tipoVista, opts.categorias.length);
+
+  if (y + (14 + chartH + 20) > 280) { doc.addPage(); y = 22; }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(176, 128, 0);
+  doc.text(opts.titulo, marginX, y);
+  y += 6;
+
+  dibujarChartPDF(doc, marginX, y, width, chartH, tipoVista, serieStats, distStats);
+  y += chartH + 6;
+
+  y = dibujarResumenPDF(doc, marginX, y, width, distStats, opts.fuentesTexto, metrica);
+
+  doc.setDrawColor(210, 215, 230);
+  doc.setLineWidth(0.2);
+  doc.line(marginX, y, 210 - marginX, y);
+  y += 7;
+  return y;
+}
+
 // ─── EXPORTAR PDF ─────────────────────────────────────────────────────────────
 function exportarPDF(tipo) {
   if (typeof window.jspdf === 'undefined') {
     showToast('⚠️ Cargando librería, reintentá en un momento', 4000); return;
   }
   const { jsPDF } = window.jspdf;
-  let entradas = [];
   const h = hoy();
+  const marginX = 18;
+
+  if (tipo === 'semana' && !semanaActiva) { showToast('⚠️ Primero abrí una semana'); return; }
+  if (tipo === 'mes' && mesActivo === null) { showToast('⚠️ Primero abrí un mes'); return; }
 
   const getEntriesForDayExport = (mes, dia) => {
     const data = cargarTodo();
     const prefix = `${mes}_${dia}_`;
     const result = [];
     Object.keys(data).forEach(key => {
-      if (key.startsWith(prefix)) {
-        const hora = key.substring(prefix.length);
-        result.push({ hora, ...data[key] });
-      }
+      if (key.startsWith(prefix)) result.push({ hora: key.substring(prefix.length), ...data[key] });
     });
     return result.sort((a, b) => a.hora.localeCompare(b.hora));
   };
 
-  if (tipo === 'dia') {
-    const mes = mesActivo !== null ? mesActivo : h.mes;
-    const dia = diaActivo ? diaActivo.dia : h.dia;
-    const entries = getEntriesForDayExport(mes, dia);
-    if (!entries.length) {
-      showToast('⚠️ No hay entradas para el día activo'); return;
-    }
-    entradas.push({ mes, dia, entries });
-  }
-  else if (tipo === 'semana') {
-    if (!semanaActiva) { showToast('⚠️ Primero abrí una semana'); return; }
-    getSemana(semanaActiva.mes, semanaActiva.weekIdx).forEach(d => {
-      if (d) {
-        const entries = getEntriesForDayExport(semanaActiva.mes, d);
-        if (entries.length) entradas.push({ mes: semanaActiva.mes, dia: d, entries });
-      }
-    });
-    if (!entradas.length) { showToast('⚠️ Sin entradas en la semana activa'); return; }
-  }
-  else if (tipo === 'mes') {
-    if (mesActivo === null) { showToast('⚠️ Primero abrí un mes'); return; }
-    for (let d = 1; d <= diasEnMes(mesActivo); d++) {
-      const entries = getEntriesForDayExport(mesActivo, d);
-      if (entries.length) entradas.push({ mes: mesActivo, dia: d, entries });
-    }
-    if (!entradas.length) { showToast('⚠️ Sin entradas en el mes'); return; }
-  }
-  else if (tipo === 'todo') {
-    MESES.forEach((_, m) => {
-      for (let d = 1; d <= diasEnMes(m); d++) {
-        const entries = getEntriesForDayExport(m, d);
-        if (entries.length) entradas.push({ mes: m, dia: d, entries });
-      }
-    });
-    if (!entradas.length) { showToast('⚠️ No hay entradas en la bitácora'); return; }
-  }
-
   const doc     = new jsPDF('portrait', 'mm', 'a4');
-  const marginX = 18;
+  const width   = 210 - marginX * 2;
   let y = 22;
 
   doc.setFont('helvetica', 'bold');
@@ -1354,73 +2944,216 @@ function exportarPDF(tipo) {
   doc.text('Bitácora de Ruido · Sauce Viejo', marginX, y);
   y += 8;
 
+  const periodoLabel =
+    tipo === 'dia'      ? 'Día activo' :
+    tipo === 'semana'   ? 'Semana activa' :
+    tipo === 'mes'      ? MESES[mesActivo !== null ? mesActivo : h.mes] + ' ' + YEAR :
+    tipo === 'graficos' ? 'Resumen gráfico — todos los meses de ' + YEAR :
+                          'Año completo ' + YEAR;
+
+  const VISTA_LABELS = { barras: 'Barras', 'barras-h': 'Barras horizontales', torta: 'Circular', porcentaje: '% Distribución' };
+  const METRICA_LABELS = { franja: 'Franja (4hs)', dia: 'Día' };
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(100, 110, 140);
-  const periodoLabel =
-    tipo === 'dia'    ? 'Día activo' :
-    tipo === 'semana' ? 'Semana activa' :
-    tipo === 'mes'    ? MESES[mesActivo] + ' ' + YEAR :
-                        'Año completo ' + YEAR;
-  
   const ahora = new Date();
   const pad = n => String(n).padStart(2, '0');
   const fechaStr = `${pad(ahora.getDate())}/${pad(ahora.getMonth()+1)}/${ahora.getFullYear()}`;
   const horaStr = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}:${pad(ahora.getSeconds())}`;
-  
   doc.text(`Período: ${periodoLabel}   ·   Generado: ${fechaStr}, ${horaStr}`, marginX, y);
+  y += 4;
+  doc.text(`Vista de gráfico: ${VISTA_LABELS[chartVista]}   ·   Calcular por: ${METRICA_LABELS[chartMetrica]}`, marginX, y);
   y += 4;
   doc.setDrawColor(180, 160, 0);
   doc.setLineWidth(0.5);
   doc.line(marginX, y, 210 - marginX, y);
-  y += 10;
+  y += 7;
 
-  entradas.forEach(({ mes, dia, entries }) => {
-    if (y > 265) { doc.addPage(); y = 22; }
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(6.3);
+  doc.setTextColor(140, 148, 170);
+  const nota = 'Los porcentajes de cada gráfico se calculan sobre el total de franjas o días efectivamente registrados (según el criterio elegido arriba), no sobre el total posible. La cobertura indica qué proporción del período fue registrada.';
+  doc.splitTextToSize(nota, width).forEach(l => { doc.text(l, marginX, y); y += 3.2; });
+  y += 5;
 
+  // ── listado de un día: franjas calificadas + notas horarias (fuente / texto) ──
+  const listarDia = (mes, dia, entries) => {
+    if (y > 260) { doc.addPage(); y = 22; }
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
+    doc.setFontSize(10.5);
     doc.setTextColor(20, 30, 60);
     doc.text(`${dia} de ${MESES[mes]} de ${YEAR} — ${DIAS_SEMANA[diaSemana(mes, dia)]}`, marginX, y);
-    y += 6;
+    y += 5;
 
-    entries.forEach((entry) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(90, 100, 130);
+    doc.splitTextToSize(`Franjas: ${franjasLineaPDF(mes, dia)}`, width).forEach(l => {
       if (y > 270) { doc.addPage(); y = 22; }
+      doc.text(l, marginX, y); y += 3.8;
+    });
+    y += 1;
 
+    if (!entries.length) {
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8);
-      doc.setTextColor(0, 100, 180);
-      doc.text(`Hora: ${entry.hora}  ·  Fuente: ${entry.fuente || '—'}`, marginX, y);
+      doc.setTextColor(140, 148, 170);
+      doc.text('Sin notas horarias registradas.', marginX, y);
       y += 5;
+    } else {
+      entries.forEach((entry) => {
+        if (y > 270) { doc.addPage(); y = 22; }
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(0, 100, 180);
+        doc.text(`Hora: ${entry.hora}  ·  Fuente: ${entry.fuente || '—'}`, marginX, y);
+        y += 5;
+        if (entry.texto && entry.texto.trim()) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(40, 50, 70);
+          doc.splitTextToSize(entry.texto.trim(), width - 4).forEach(line => {
+            if (y > 270) { doc.addPage(); y = 22; }
+            doc.text(line, marginX + 4, y); y += 4.5;
+          });
+        }
+        y += 2;
+      });
+    }
+    y += 2;
+    doc.setDrawColor(220, 224, 236);
+    doc.setLineWidth(0.15);
+    doc.line(marginX, y, 210 - marginX, y);
+    y += 6;
+  };
 
-      if (entry.texto && entry.texto.trim()) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(40, 50, 70);
-        const lines = doc.splitTextToSize(entry.texto.trim(), 210 - marginX * 2);
-        lines.forEach(line => {
-          if (y > 270) { doc.addPage(); y = 22; }
-          doc.text(line, marginX + 4, y);
-          y += 4.5;
-        });
-      }
-      y += 2;
+  if (tipo === 'dia') {
+    const mes = diaAbierto ? diaAbierto.mes : (mesActivo !== null ? mesActivo : h.mes);
+    const dia = diaAbierto ? diaAbierto.dia : h.dia;
+    const entries = getEntriesForDayExport(mes, dia);
+    const stats = statsFranjasDia(mes, dia);
+    // Un solo día: el check "por día" no aporta info extra, se usa siempre a nivel de franja
+    y = agregarSeccionGrafico(doc, marginX, y, {
+      titulo: `Calificación de ruido — ${dia} de ${MESES[mes]}`,
+      categorias: stats.categorias, valores: stats.valores, stats,
+      tipoVista: chartVista, metrica: 'franja',
+      fuentesTexto: fuentesTopTexto(entries)
+    });
+    listarDia(mes, dia, entries);
+  }
+
+  else if (tipo === 'semana') {
+    const dias = getSemana(semanaActiva.mes, semanaActiva.weekIdx).filter(d => d !== null);
+    const listaDias = dias.map(d => ({ mes0: semanaActiva.mes, dia: d, label: `${DIAS_SEMANA[diaSemana(semanaActiva.mes, d)]} ${d}` }));
+    const stats = statsFranjasDias(listaDias);
+    const entradasFlat = dias.map(d => getEntriesForDayExport(semanaActiva.mes, d)).flat();
+    const distStats = chartMetrica === 'dia'
+      ? statsNivelPorDiaLista(dias.map(d => ({ mes0: semanaActiva.mes, dia: d })))
+      : undefined;
+    y = agregarSeccionGrafico(doc, marginX, y, {
+      titulo: `Calificación de ruido — Semana (${MESES[semanaActiva.mes]})`,
+      categorias: stats.categorias, valores: stats.valores, stats,
+      tipoVista: chartVista, metrica: chartMetrica, distStats,
+      fuentesTexto: fuentesTopTexto(entradasFlat)
+    });
+    dias.forEach(d => listarDia(semanaActiva.mes, d, getEntriesForDayExport(semanaActiva.mes, d)));
+  }
+
+  else if (tipo === 'mes') {
+    const mes = mesActivo;
+    const totalDias = diasEnMes(mes);
+    const stats = chartAgrupacionMes === 'semana' ? statsFranjasMesPorSemana(mes) : statsFranjasMes(mes);
+    let entradasFlat = [];
+    for (let d = 1; d <= totalDias; d++) entradasFlat = entradasFlat.concat(getEntriesForDayExport(mes, d));
+    const distStats = chartMetrica === 'dia' ? statsNivelPorDiaLista(listaDiasDeMes(mes)) : undefined;
+    y = agregarSeccionGrafico(doc, marginX, y, {
+      titulo: `Calificación de ruido — ${MESES[mes]} ${YEAR}`,
+      categorias: stats.categorias, valores: stats.valores, stats,
+      tipoVista: chartVista, metrica: chartMetrica, distStats,
+      fuentesTexto: fuentesTopTexto(entradasFlat)
+    });
+    for (let d = 1; d <= totalDias; d++) {
+      const entries = getEntriesForDayExport(mes, d);
+      const calDia = getCalificacionesDia(mes, d);
+      if (entries.length || Object.keys(calDia).length) listarDia(mes, d, entries);
+    }
+  }
+
+  else if (tipo === 'todo') {
+    const statsAnio = chartAgrupacionAnio === 'semana' ? statsFranjasAnioPorSemana() : statsFranjasAnio();
+    let entradasAnioFlat = [];
+    MESES.forEach((_, m) => { for (let d = 1; d <= diasEnMes(m); d++) entradasAnioFlat = entradasAnioFlat.concat(getEntriesForDayExport(m, d)); });
+    const distStatsAnio = chartMetrica === 'dia' ? statsNivelPorDiaLista(listaDiasDelAnio()) : undefined;
+    y = agregarSeccionGrafico(doc, marginX, y, {
+      titulo: `Calificación de ruido — Año completo ${YEAR}`,
+      categorias: statsAnio.categorias, valores: statsAnio.valores, stats: statsAnio,
+      tipoVista: chartVista, metrica: chartMetrica, distStats: distStatsAnio,
+      fuentesTexto: fuentesTopTexto(entradasAnioFlat)
     });
 
-    y += 3;
-    doc.setDrawColor(210, 215, 230);
-    doc.setLineWidth(0.2);
-    doc.line(marginX, y, 210 - marginX, y);
-    y += 7;
-  });
+    MESES.forEach((nombreMes, m) => {
+      const statsMes = statsFranjasMes(m);
+      const totalDias = diasEnMes(m);
+      let entradasMesFlat = [];
+      for (let d = 1; d <= totalDias; d++) entradasMesFlat = entradasMesFlat.concat(getEntriesForDayExport(m, d));
+      const distStatsMes = chartMetrica === 'dia' ? statsNivelPorDiaLista(listaDiasDeMes(m)) : undefined;
+      y = agregarSeccionGrafico(doc, marginX, y, {
+        titulo: `${nombreMes} ${YEAR}`,
+        categorias: statsMes.categorias, valores: statsMes.valores, stats: statsMes,
+        tipoVista: chartVista, metrica: chartMetrica, distStats: distStatsMes,
+        fuentesTexto: fuentesTopTexto(entradasMesFlat)
+      });
 
-  const total = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= total; i++) {
+      let hayAlgo = false;
+      for (let d = 1; d <= totalDias; d++) {
+        const entries = getEntriesForDayExport(m, d);
+        const calDia = getCalificacionesDia(m, d);
+        if (entries.length || Object.keys(calDia).length) { hayAlgo = true; listarDia(m, d, entries); }
+      }
+      if (!hayAlgo) {
+        if (y > 270) { doc.addPage(); y = 22; }
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(140, 148, 170);
+        doc.text(`Sin registros en ${nombreMes}.`, marginX, y);
+        y += 8;
+      }
+    });
+  }
+
+  else if (tipo === 'graficos') {
+    const statsAnio = chartAgrupacionAnio === 'semana' ? statsFranjasAnioPorSemana() : statsFranjasAnio();
+    let entradasAnioFlat = [];
+    MESES.forEach((_, m) => { for (let d = 1; d <= diasEnMes(m); d++) entradasAnioFlat = entradasAnioFlat.concat(getEntriesForDayExport(m, d)); });
+    const distStatsAnio = chartMetrica === 'dia' ? statsNivelPorDiaLista(listaDiasDelAnio()) : undefined;
+    y = agregarSeccionGrafico(doc, marginX, y, {
+      titulo: `Predominio de ruido — Todos los meses de ${YEAR}`,
+      categorias: statsAnio.categorias, valores: statsAnio.valores, stats: statsAnio,
+      tipoVista: chartVista, metrica: chartMetrica, distStats: distStatsAnio,
+      fuentesTexto: fuentesTopTexto(entradasAnioFlat)
+    });
+    MESES.forEach((nombreMes, m) => {
+      const statsMes = statsFranjasMes(m);
+      let entradasMesFlat = [];
+      for (let d = 1; d <= diasEnMes(m); d++) entradasMesFlat = entradasMesFlat.concat(getEntriesForDayExport(m, d));
+      const distStatsMes = chartMetrica === 'dia' ? statsNivelPorDiaLista(listaDiasDeMes(m)) : undefined;
+      y = agregarSeccionGrafico(doc, marginX, y, {
+        titulo: `${nombreMes} ${YEAR}`,
+        categorias: statsMes.categorias, valores: statsMes.valores, stats: statsMes,
+        tipoVista: chartVista, metrica: chartMetrica, distStats: distStatsMes,
+        fuentesTexto: fuentesTopTexto(entradasMesFlat)
+      });
+    });
+  }
+
+  const totalPag = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPag; i++) {
     doc.setPage(i);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(150, 160, 180);
-    doc.text(`Bitácora Ruido Sauce Viejo ${YEAR}  ·  Pág ${i}/${total}`, 105, 292, { align: 'center' });
+    doc.text(`Bitácora Ruido Sauce Viejo ${YEAR}  ·  Pág ${i}/${totalPag}`, 105, 292, { align: 'center' });
   }
 
   const ts = new Date();
