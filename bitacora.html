@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
 <style>
 /* ══════════════════════════════════════════
@@ -1068,6 +1069,8 @@ h1 {
 .btn-tabla-export-pdf { border-color: var(--accent2); color: var(--accent2); }
 .btn-tabla-export-pdf:hover { background: rgba(224,90,32,0.10); }
 [data-theme="dark"] .btn-tabla-export-pdf:hover { background: rgba(255,107,53,0.10); }
+.btn-tabla-export-xlsx { border-color: var(--gold); color: var(--gold); }
+.btn-tabla-export-xlsx:hover { background: var(--gold-bg); }
 .tabla-leyenda {
   display: flex;
   flex-wrap: wrap;
@@ -2120,6 +2123,7 @@ function renderTablaMes(mes0) {
         <div class="chart-title">📋 Tabla de calificaciones — ${MESES[mes0]} ${YEAR}</div>
         <div class="tabla-export-btns">
           <button class="btn-tabla-export" onclick="exportarTablaCSV(${mes0})">📥 Exportar CSV</button>
+          <button class="btn-tabla-export btn-tabla-export-xlsx" onclick="exportarTablaExcel(${mes0})">📊 Exportar Excel</button>
           <button class="btn-tabla-export btn-tabla-export-pdf" onclick="exportarTablaPDF(${mes0})">📄 Exportar PDF</button>
         </div>
       </div>
@@ -2257,6 +2261,89 @@ function exportarTablaPDF(mes0) {
   const fechaHora = `${ts.getFullYear()}${pad2(ts.getMonth()+1)}${pad2(ts.getDate())}_${pad2(ts.getHours())}${pad2(ts.getMinutes())}`;
   doc.save(`bitacora_tabla_${MESES_ABR[mes0]}_${YEAR}_${fechaHora}.pdf`);
   showToast('✓ Tabla exportada a PDF');
+}
+
+function exportarTablaExcel(mes0) {
+  if (typeof XLSX === 'undefined') {
+    showToast('⚠️ Cargando librería, reintentá en un momento', 4000); return;
+  }
+  const toHex = arr => arr.map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+  const filas = construirFilasTablaMes(mes0);
+  const nCols = 2 + FRANJAS.length; // Semana + Día + 6 franjas
+
+  const aoa = [];
+  aoa.push([`Tabla de calificaciones de ruido — ${MESES[mes0]} ${YEAR}`, ...Array(nCols - 1).fill('')]);
+  aoa.push(['Bitácora de Ruido · Sauce Viejo', ...Array(nCols - 1).fill('')]);
+  aoa.push(Array(nCols).fill(''));
+  aoa.push([...RATING_LEVELS.map(l => l.abbr), ...Array(nCols - RATING_LEVELS.length).fill('')]);
+  aoa.push(['NP = No perceptible  ·  B = Bajo  ·  M = Medio  ·  A = Alto  ·  MA = Muy alto', ...Array(nCols - 1).fill('')]);
+  aoa.push(Array(nCols).fill(''));
+  aoa.push(['Semana', 'Día', 'Franja horaria', '', '', '', '', '']);
+  aoa.push(['', '', ...FRANJAS.map(f => f.label)]);
+  filas.forEach(f => aoa.push([f.semana, f.fecha, ...f.franjas]));
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: nCols - 1 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: nCols - 1 } },
+    { s: { r: 4, c: 0 }, e: { r: 4, c: nCols - 1 } },
+    { s: { r: 6, c: 0 }, e: { r: 7, c: 0 } },
+    { s: { r: 6, c: 1 }, e: { r: 7, c: 1 } },
+    { s: { r: 6, c: 2 }, e: { r: 6, c: nCols - 1 } }
+  ];
+  ws['!cols'] = [{ wch: 9 }, { wch: 16 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 }];
+  ws['!rows'] = [{ hpt: 20 }, { hpt: 14 }, { hpt: 6 }, { hpt: 18 }, { hpt: 14 }, { hpt: 6 }, { hpt: 16 }, { hpt: 16 }];
+
+  const borde = { style: 'thin', color: { rgb: 'D2D7E6' } };
+  const bordeCompleto = { top: borde, bottom: borde, left: borde, right: borde };
+
+  const setStyle = (r, c, style) => {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+    ws[addr].s = style;
+  };
+
+  setStyle(0, 0, { font: { bold: true, sz: 14, color: { rgb: '1A1F2E' } } });
+  setStyle(1, 0, { font: { italic: true, sz: 9, color: { rgb: '646E8C' } } });
+
+  RATING_LEVELS.forEach((lvl, i) => {
+    setStyle(3, i, {
+      font: { bold: true, sz: 9, color: { rgb: 'FFFFFF' } },
+      fill: { fgColor: { rgb: toHex(PDF_RATING_COLORS[i]) } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: bordeCompleto
+    });
+  });
+  setStyle(4, 0, { font: { sz: 8, italic: true, color: { rgb: '8A95B8' } } });
+
+  for (let c = 0; c < nCols; c++) {
+    setStyle(6, c, { font: { bold: true, sz: 9, color: { rgb: 'FFD700' } }, fill: { fgColor: { rgb: '1A1F2E' } }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true }, border: bordeCompleto });
+    setStyle(7, c, { font: { bold: true, sz: 9, color: { rgb: 'FFD700' } }, fill: { fgColor: { rgb: '1A1F2E' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto });
+  }
+
+  filas.forEach((f, idx) => {
+    const r = 8 + idx;
+    const fondoSemana = f.weekIdx % 2 === 0 ? 'F4F6FA' : 'FFFFFF';
+    setStyle(r, 0, { font: { bold: true, sz: 9, color: { rgb: 'B08000' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: fondoSemana } } });
+    setStyle(r, 1, { font: { sz: 9, color: { rgb: '444C66' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: fondoSemana } } });
+    f.franjas.forEach((abbr, fi) => {
+      const nivel = RATING_LEVELS.find(l => l.abbr === abbr);
+      const style = nivel
+        ? { font: { bold: true, sz: 9, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: toHex(PDF_RATING_COLORS[nivel.value]) } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto }
+        : { font: { sz: 9, color: { rgb: 'C0C6DA' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'FAFBFD' } } };
+      setStyle(r, 2 + fi, style);
+    });
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, MESES[mes0].substring(0, 31));
+
+  const ts = new Date();
+  const pad2 = n => String(n).padStart(2, '0');
+  const fechaHoraXlsx = `${ts.getFullYear()}${pad2(ts.getMonth()+1)}${pad2(ts.getDate())}_${pad2(ts.getHours())}${pad2(ts.getMinutes())}`;
+  XLSX.writeFile(wb, `bitacora_tabla_${MESES_ABR[mes0]}_${YEAR}_${fechaHoraXlsx}.xlsx`);
+  showToast('✓ Tabla exportada a Excel');
 }
 
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
@@ -3182,15 +3269,17 @@ function getSemana(mes0, weekIdx) {
 // ─── RESPALDO JSON ────────────────────────────────────────────────────────────
 function descargarRespaldo() {
   const data = cargarTodo();
-  if (!Object.keys(data).length) {
+  const calificaciones = cargarCalificaciones();
+  if (!Object.keys(data).length && !Object.keys(calificaciones).length) {
     showToast('⚠️ No hay entradas para respaldar'); return;
   }
   const payload = {
     app:     'bitacora_ruido_sauceviejo',
-    version: 2,
+    version: 3,
     año:     YEAR,
     exportado: new Date().toISOString(),
-    entradas: data
+    entradas: data,
+    calificaciones: calificaciones
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
@@ -3201,7 +3290,7 @@ function descargarRespaldo() {
   a.download = `bitacora_ruido_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✓ Respaldo descargado');
+  showToast('✓ Respaldo descargado (incluye notas y calificaciones)');
 }
 
 function restaurarRespaldo(event) {
@@ -3211,14 +3300,22 @@ function restaurarRespaldo(event) {
   reader.onload = e => {
     try {
       const payload = JSON.parse(e.target.result);
-      const entradas = payload.entradas || payload;
+      const entradas = payload.entradas || (payload.calificaciones ? {} : payload);
+      const calificaciones = payload.calificaciones || {};
       if (typeof entradas !== 'object' || Array.isArray(entradas)) {
         showToast('⚠️ Archivo inválido'); return;
       }
-      const total = Object.keys(entradas).length;
-      if (!confirm(`¿Restaurar ${total} entrada${total !== 1 ? 's' : ''} desde el archivo?\nEsto reemplazará los datos actuales en el navegador.`)) return;
+      const totalEntradas = Object.keys(entradas).length;
+      const totalCalif = Object.keys(calificaciones).length;
+      const resumen = [
+        totalEntradas ? `${totalEntradas} nota${totalEntradas !== 1 ? 's' : ''} horaria${totalEntradas !== 1 ? 's' : ''}` : null,
+        totalCalif ? `${totalCalif} franja${totalCalif !== 1 ? 's' : ''} calificada${totalCalif !== 1 ? 's' : ''}` : null
+      ].filter(Boolean).join(' y ');
+      if (!resumen) { showToast('⚠️ El archivo no tiene datos para restaurar'); return; }
+      if (!confirm(`¿Restaurar ${resumen} desde el archivo?\nEsto reemplazará los datos actuales en el navegador.`)) return;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(entradas));
-      showToast(`✓ ${total} entrada${total !== 1 ? 's' : ''} restaurada${total !== 1 ? 's' : ''}`);
+      if (totalCalif) localStorage.setItem(CALIF_KEY, JSON.stringify(calificaciones));
+      showToast(`✓ Restaurado: ${resumen}`);
       renderMeses();
       if (mesActivo !== null) abrirMes(mesActivo);
     } catch {
