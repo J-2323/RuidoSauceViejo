@@ -1140,61 +1140,6 @@ h1 {
 .tabla-fila.semana-1 td:not(.tabla-celda) { background: var(--panel); }
 
 /* ══════════════════════════════════════════
-   RESUMEN "CANTIDAD DE DÍAS" (tabla mensual)
-══════════════════════════════════════════ */
-.tabla-resumen-wrap {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--border2);
-}
-.tabla-resumen-titulo {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--gold);
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
-}
-.tabla-resumen {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 480px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.66rem;
-}
-.tabla-resumen th, .tabla-resumen td {
-  border: 1px solid var(--border);
-  padding: 6px 5px;
-  text-align: center;
-}
-.tabla-resumen thead th {
-  background: var(--week-hdr);
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.58rem;
-}
-.tabla-resumen tbody th {
-  text-align: left;
-  padding-left: 8px;
-  color: var(--text-dim);
-  font-weight: 600;
-  white-space: nowrap;
-  background: var(--week-hdr);
-}
-.tabla-resumen td.resumen-total {
-  font-weight: 700;
-  color: var(--gold);
-  background: var(--gold-bg);
-}
-.tabla-resumen-nota {
-  margin-top: 6px;
-  font-size: 0.62rem;
-  color: var(--text-dim);
-  font-style: italic;
-}
-
-/* ══════════════════════════════════════════
    SCROLLBAR
 ══════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 5px; }
@@ -2135,41 +2080,6 @@ function construirFilasTablaMes(mes0) {
   return filas;
 }
 
-// Calcula, para las filas de una tabla mensual, cuántas franjas hay de cada nivel
-// y a cuántos "días equivalentes" equivalen (franjas / 6, igual que en el Excel).
-function calcularResumenTablaMes(filas) {
-  const counts = {};
-  RATING_LEVELS.forEach(l => counts[l.abbr] = 0);
-  let sinCalificar = 0;
-  let totalFranjasRegistradas = 0;
-  let diasConRegistro = 0;
-
-  filas.forEach(f => {
-    let algunaFranja = false;
-    f.franjas.forEach(abbr => {
-      if (abbr === '—') { sinCalificar++; return; }
-      counts[abbr] = (counts[abbr] || 0) + 1;
-      totalFranjasRegistradas++;
-      algunaFranja = true;
-    });
-    if (algunaFranja) diasConRegistro++;
-  });
-
-  const dias = {};
-  RATING_LEVELS.forEach(l => { dias[l.abbr] = counts[l.abbr] / 6; });
-  const diasSinCalificar = sinCalificar / 6;
-
-  const totalFranjas = totalFranjasRegistradas + sinCalificar; // = filas.length * 6
-  const totalDiasEquiv = totalFranjas / 6; // siempre = totalDias (cierra el mes completo)
-
-  return {
-    counts, dias, totalFranjas, totalDiasEquiv,
-    totalFranjasRegistradas,
-    sinCalificar, diasSinCalificar,
-    diasConRegistro, totalDias: filas.length
-  };
-}
-
 function toggleTablaMes() {
   if (mesActivo === null) { showToast('⚠️ Primero abrí un mes'); return; }
   tablaMesAbierta = !tablaMesAbierta;
@@ -2207,9 +2117,6 @@ function renderTablaMes(mes0) {
   const leyenda = RATING_LEVELS.map((lvl, i) => `
     <span class="tabla-leyenda-item"><span class="tabla-leyenda-swatch" style="background:var(--rt-${i})"></span>${lvl.abbr} · ${lvl.label}</span>`).join('');
 
-  const resumen = calcularResumenTablaMes(filas);
-  const resumenHTML = construirResumenDiasHTML(resumen);
-
   panel.innerHTML = `
     <div class="tabla-panel-inner">
       <div class="tabla-header-row">
@@ -2236,66 +2143,17 @@ function renderTablaMes(mes0) {
         </table>
       </div>
       <div class="chart-note">ℹ️ Cada celda muestra la calificación de esa franja horaria: NP (No perceptible), B (Bajo), M (Medio), A (Alto), MA (Muy alto). Las celdas con "—" indican que esa franja no fue calificada.</div>
-      ${resumenHTML}
-    </div>`;
-}
-
-// Construye el bloque HTML con la "cantidad de días" equivalentes por nivel,
-// igual al resumen del Excel (franjas de ese nivel ÷ 6 = días equivalentes).
-function construirResumenDiasHTML(resumen) {
-  const filasNivel = RATING_LEVELS.map((lvl, i) => `
-    <tr>
-      <th><span class="tabla-leyenda-swatch" style="background:var(--rt-${i});display:inline-block;width:9px;height:9px;margin-right:5px;"></span>${lvl.abbr} · ${lvl.label}</th>
-      <td>${resumen.counts[lvl.abbr] || 0}</td>
-      <td>${(resumen.dias[lvl.abbr] || 0).toFixed(2)}</td>
-    </tr>`).join('');
-
-  const filaSinCalificar = `
-    <tr>
-      <th><span class="tabla-leyenda-swatch" style="background:var(--text-dim);display:inline-block;width:9px;height:9px;margin-right:5px;"></span>— · Sin calificar</th>
-      <td>${resumen.sinCalificar}</td>
-      <td>${resumen.diasSinCalificar.toFixed(2)}</td>
-    </tr>`;
-
-  return `
-    <div class="tabla-resumen-wrap">
-      <div class="tabla-resumen-titulo">📅 Cantidad de días (equivalentes) por nivel de ruido</div>
-      <table class="tabla-resumen">
-        <thead>
-          <tr><th>Nivel</th><th>Franjas</th><th>Días equiv.</th></tr>
-        </thead>
-        <tbody>
-          ${filasNivel}
-          ${filaSinCalificar}
-          <tr>
-            <th>Total</th>
-            <td class="resumen-total">${resumen.totalFranjas}</td>
-            <td class="resumen-total">${resumen.totalDiasEquiv.toFixed(2)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="tabla-resumen-nota">ℹ️ "Días equiv." = franjas de ese nivel ÷ 6 (igual criterio que la planilla Excel). La fila "Sin calificar" suma las franjas con "—" para que el total cierre con los ${resumen.totalDias} días de la tabla. Días con al menos una franja calificada: ${resumen.diasConRegistro}/${resumen.totalDias}.</div>
     </div>`;
 }
 
 function exportarTablaCSV(mes0) {
   const filas = construirFilasTablaMes(mes0);
-  const resumen = calcularResumenTablaMes(filas);
   const encabezado = ['Semana', 'Día', ...FRANJAS.map(f => `Franja horaria ${f.label}`)];
   let csv = encabezado.join(';') + '\n';
   filas.forEach(f => {
     csv += [f.semana, f.fecha, ...f.franjas].join(';') + '\n';
   });
   csv += '\nReferencia;NP=No perceptible;B=Bajo;M=Medio;A=Alto;MA=Muy alto\n';
-
-  csv += '\nCantidad de días (equivalentes) por nivel de ruido\n';
-  csv += 'Nivel;Franjas;Días equivalentes\n';
-  RATING_LEVELS.forEach(lvl => {
-    csv += `${lvl.abbr} - ${lvl.label};${resumen.counts[lvl.abbr] || 0};${(resumen.dias[lvl.abbr] || 0).toFixed(2)}\n`;
-  });
-  csv += `— - Sin calificar;${resumen.sinCalificar};${resumen.diasSinCalificar.toFixed(2)}\n`;
-  csv += `Total;${resumen.totalFranjas};${resumen.totalDiasEquiv.toFixed(2)}\n`;
-  csv += `Días del mes con al menos una franja calificada;${resumen.diasConRegistro};de ${resumen.totalDias}\n`;
 
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -2389,64 +2247,6 @@ function exportarTablaPDF(mes0) {
   doc.setTextColor(140, 148, 170);
   doc.text('NP = No perceptible · B = Bajo · M = Medio · A = Alto · MA = Muy alto · "—" = franja sin calificar', marginX, yFinal);
 
-  // ── Resumen: cantidad de días (equivalentes) por nivel de ruido ──
-  const resumen = calcularResumenTablaMes(filas);
-  let yResumen = yFinal + 8;
-  const alturaResumenEstim = 10 + (RATING_LEVELS.length + 2) * 6.5 + 10;
-  if (yResumen + alturaResumenEstim > doc.internal.pageSize.getHeight() - 16) {
-    doc.addPage();
-    yResumen = 16;
-  }
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(20, 30, 60);
-  doc.text('Cantidad de días (equivalentes) por nivel de ruido', marginX, yResumen);
-  yResumen += 6;
-
-  const bodyResumen = RATING_LEVELS.map((lvl, i) => [
-    lvl.abbr, lvl.label, String(resumen.counts[lvl.abbr] || 0), (resumen.dias[lvl.abbr] || 0).toFixed(2)
-  ]);
-  bodyResumen.push(['—', 'Sin calificar', String(resumen.sinCalificar), resumen.diasSinCalificar.toFixed(2)]);
-  bodyResumen.push(['', 'Total', String(resumen.totalFranjas), resumen.totalDiasEquiv.toFixed(2)]);
-
-  doc.autoTable({
-    startY: yResumen,
-    margin: { left: marginX, right: marginX },
-    tableWidth: 110,
-    head: [['Abr.', 'Nivel', 'Franjas', 'Días equiv.']],
-    body: bodyResumen,
-    theme: 'grid',
-    styles: { font: 'helvetica', fontSize: 8, halign: 'center', valign: 'middle', lineColor: [210, 215, 230], lineWidth: 0.2 },
-    headStyles: { fillColor: [26, 31, 46], textColor: [255, 215, 0], fontStyle: 'bold', fontSize: 7.5 },
-    columnStyles: { 1: { halign: 'left' } },
-    didParseCell: (data) => {
-      if (data.section !== 'body') return;
-      if (data.row.index === bodyResumen.length - 1) {
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.textColor = [176, 128, 0];
-      } else if (data.column.index === 0) {
-        const nivel = RATING_LEVELS.find(l => l.abbr === data.cell.raw);
-        if (nivel) {
-          const c = PDF_RATING_COLORS[nivel.value];
-          data.cell.styles.fillColor = c;
-          data.cell.styles.textColor = [255, 255, 255];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (data.cell.raw === '—' && data.row.index !== bodyResumen.length - 1) {
-          data.cell.styles.fillColor = [190, 195, 210];
-          data.cell.styles.textColor = [255, 255, 255];
-          data.cell.styles.fontStyle = 'bold';
-        }
-      }
-    }
-  });
-
-  let yNotaResumen = doc.lastAutoTable.finalY + 5;
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(7);
-  doc.setTextColor(140, 148, 170);
-  doc.text('"Días equiv." = franjas de ese nivel ÷ 6. "Sin calificar" incluye las franjas con "—", así el total cierra con los días de la tabla. Días con al menos una franja calificada: ' +
-    `${resumen.diasConRegistro}/${resumen.totalDias}.`, marginX, yNotaResumen);
-
   const totalPag = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPag; i++) {
     doc.setPage(i);
@@ -2469,7 +2269,6 @@ function exportarTablaExcel(mes0) {
   }
   const toHex = arr => arr.map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
   const filas = construirFilasTablaMes(mes0);
-  const resumen = calcularResumenTablaMes(filas);
   const nCols = 2 + FRANJAS.length; // Semana + Día + 6 franjas
 
   const aoa = [];
@@ -2483,23 +2282,6 @@ function exportarTablaExcel(mes0) {
   aoa.push(['', '', ...FRANJAS.map(f => f.label)]);
   filas.forEach(f => aoa.push([f.semana, f.fecha, ...f.franjas]));
 
-  // ── Sección: cantidad de días (equivalentes) por nivel de ruido ──
-  const filaTituloResumen = aoa.length + 1; // fila en blanco antes
-  aoa.push(Array(nCols).fill(''));
-  aoa.push(['Cantidad de días (equivalentes) por nivel de ruido', ...Array(nCols - 1).fill('')]);
-  const filaHeaderResumen = aoa.length;
-  aoa.push(['Nivel', 'Franjas', 'Días equiv.', ...Array(nCols - 3).fill('')]);
-  const filaPrimerNivel = aoa.length;
-  RATING_LEVELS.forEach(lvl => {
-    aoa.push([`${lvl.abbr} - ${lvl.label}`, resumen.counts[lvl.abbr] || 0, Number((resumen.dias[lvl.abbr] || 0).toFixed(2)), ...Array(nCols - 3).fill('')]);
-  });
-  const filaSinCalificar = aoa.length;
-  aoa.push(['— - Sin calificar', resumen.sinCalificar, Number(resumen.diasSinCalificar.toFixed(2)), ...Array(nCols - 3).fill('')]);
-  const filaTotalResumen = aoa.length;
-  aoa.push(['Total', resumen.totalFranjas, Number(resumen.totalDiasEquiv.toFixed(2)), ...Array(nCols - 3).fill('')]);
-  const filaNotaResumen = aoa.length;
-  aoa.push([`Días del mes con al menos una franja calificada: ${resumen.diasConRegistro}/${resumen.totalDias}`, ...Array(nCols - 1).fill('')]);
-
   const ws = XLSX.utils.aoa_to_sheet(aoa);
 
   ws['!merges'] = [
@@ -2508,9 +2290,7 @@ function exportarTablaExcel(mes0) {
     { s: { r: 4, c: 0 }, e: { r: 4, c: nCols - 1 } },
     { s: { r: 6, c: 0 }, e: { r: 7, c: 0 } },
     { s: { r: 6, c: 1 }, e: { r: 7, c: 1 } },
-    { s: { r: 6, c: 2 }, e: { r: 6, c: nCols - 1 } },
-    { s: { r: filaTituloResumen, c: 0 }, e: { r: filaTituloResumen, c: nCols - 1 } },
-    { s: { r: filaNotaResumen, c: 0 }, e: { r: filaNotaResumen, c: nCols - 1 } }
+    { s: { r: 6, c: 2 }, e: { r: 6, c: nCols - 1 } }
   ];
   ws['!cols'] = [{ wch: 9 }, { wch: 16 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 }];
   ws['!rows'] = [{ hpt: 20 }, { hpt: 14 }, { hpt: 6 }, { hpt: 18 }, { hpt: 14 }, { hpt: 6 }, { hpt: 16 }, { hpt: 16 }];
@@ -2555,29 +2335,6 @@ function exportarTablaExcel(mes0) {
       setStyle(r, 2 + fi, style);
     });
   });
-
-  // Estilos de la sección "cantidad de días equivalentes"
-  setStyle(filaTituloResumen, 0, { font: { bold: true, sz: 11, color: { rgb: '1A1F2E' } } });
-  setStyle(filaHeaderResumen, 0, { font: { bold: true, sz: 9, color: { rgb: 'FFD700' } }, fill: { fgColor: { rgb: '1A1F2E' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: bordeCompleto });
-  setStyle(filaHeaderResumen, 1, { font: { bold: true, sz: 9, color: { rgb: 'FFD700' } }, fill: { fgColor: { rgb: '1A1F2E' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto });
-  setStyle(filaHeaderResumen, 2, { font: { bold: true, sz: 9, color: { rgb: 'FFD700' } }, fill: { fgColor: { rgb: '1A1F2E' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto });
-
-  RATING_LEVELS.forEach((lvl, i) => {
-    const r = filaPrimerNivel + i;
-    const c = toHex(PDF_RATING_COLORS[i]);
-    setStyle(r, 0, { font: { bold: true, sz: 9, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: c } }, alignment: { horizontal: 'left', vertical: 'center' }, border: bordeCompleto });
-    setStyle(r, 1, { font: { sz: 9, color: { rgb: '444C66' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'FAFBFD' } } });
-    setStyle(r, 2, { font: { sz: 9, color: { rgb: '444C66' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'FAFBFD' } } });
-  });
-
-  setStyle(filaSinCalificar, 0, { font: { bold: true, sz: 9, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: 'BEC3D2' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: bordeCompleto });
-  setStyle(filaSinCalificar, 1, { font: { sz: 9, color: { rgb: '444C66' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'FAFBFD' } } });
-  setStyle(filaSinCalificar, 2, { font: { sz: 9, color: { rgb: '444C66' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'FAFBFD' } } });
-
-  setStyle(filaTotalResumen, 0, { font: { bold: true, sz: 9, color: { rgb: 'B08000' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'F4F0DF' } } });
-  setStyle(filaTotalResumen, 1, { font: { bold: true, sz: 9, color: { rgb: 'B08000' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'F4F0DF' } } });
-  setStyle(filaTotalResumen, 2, { font: { bold: true, sz: 9, color: { rgb: 'B08000' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: bordeCompleto, fill: { fgColor: { rgb: 'F4F0DF' } } });
-  setStyle(filaNotaResumen, 0, { font: { italic: true, sz: 8, color: { rgb: '8A95B8' } } });
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, MESES[mes0].substring(0, 31));
