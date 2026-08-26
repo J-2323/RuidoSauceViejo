@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitácora de Ruido · Sauce Viejo 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">📓</span>
+      <span>Bitácora de Ruido · Sauce Viejo</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">🗺️ Mapa</a>
+      <a href="#" id="btnExportPdf" class="nav-link">📤 PDF</a>
+      <a href="#" id="btnExportJson" class="nav-link">⬇️ JSON</a>
+      <a href="#" id="btnImportJson" class="nav-link">⬆️ Restaurar</a>
+    </nav>
+  </header>
+
+  <main style="max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+
+    <!-- CONTROLES DE PERIODO -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <button class="btn btn-secondary period-btn active" data-period="day">📄 Día</button>
+        <button class="btn btn-secondary period-btn" data-period="week">📋 Semana</button>
+        <button class="btn btn-secondary period-btn" data-period="month">📅 Mes</button>
+        <button class="btn btn-secondary period-btn" data-period="year">📦 Año</button>
+        <input type="date" id="datePicker" class="form-control" style="max-width: 200px; margin-left: auto;">
+      </div>
+    </div>
+
+    <!-- VISTA DÍA -->
+    <div id="viewDay" class="view-section">
+      <div class="card">
+        <h2 style="margin-bottom: 0.5rem;">📄 <span id="dayTitle">Registro del día</span></h2>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+          Hacé clic en cada hora para registrar el nivel de ruido
+        </p>
+        <div class="hour-grid" id="hourGrid"></div>
+        <div style="margin-top: 1.5rem;">
+          <label style="font-size: 0.875rem; color: var(--text-secondary);">Notas del día</label>
+          <textarea id="dayNotes" class="form-control" placeholder="Observaciones, eventos, fuentes de ruido..." style="margin-top: 0.5rem;"></textarea>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+          <button id="saveDay" class="btn btn-primary">💾 Guardar día</button>
+          <button id="clearDay" class="btn btn-danger">🗑️ Borrar día</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA MES (CALENDARIO) -->
+    <div id="viewMonth" class="view-section" style="display: none;">
+      <div class="card">
+        <h2 style="margin-bottom: 0.5rem;">📅 <span id="monthTitle">Mes</span></h2>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem;">
+          <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--success); border-radius: 2px;"></span> Bajo</div>
+          <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--accent); border-radius: 2px;"></span> Medio</div>
+          <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--warning); border-radius: 2px;"></span> Alto</div>
+          <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--danger); border-radius: 2px;"></span> Muy alto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA SEMANA -->
+    <div id="viewWeek" class="view-section" style="display: none;">
+      <div class="card">
+        <h2 style="margin-bottom: 1rem;">📋 Semana</h2>
+        <div id="weekView"></div>
+      </div>
+    </div>
+
+    <!-- VISTA AÑO -->
+    <div id="viewYear" class="view-section" style="display: none;">
+      <div class="card">
+        <h2 style="margin-bottom: 1rem;">📦 Año 2026</h2>
+        <div id="yearView"></div>
+      </div>
+    </div>
+
+    <!-- ESCALA DE REFERENCIA -->
+    <div class="card" style="margin-top: 1.5rem;">
+      <h3 style="margin-bottom: 1rem;">🔊 Escala de ruido (por hora)</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: 1.5rem;">NP</div>
+          <div class="stat-label">No perceptible</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: 1.5rem; color: var(--success);">B</div>
+          <div class="stat-label">Bajo</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: 1.5rem; color: var(--accent);">M</div>
+          <div class="stat-label">Medio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: 1.5rem; color: var(--warning);">A</div>
+          <div class="stat-label">Alto</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: 1.5rem; color: var(--danger);">MA</div>
+          <div class="stat-label">Muy alto</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL SELECCIONAR NIVEL -->
+  <div id="levelModal" class="modal-overlay">
+    <div class="modal" style="max-width: 400px;">
+      <h2>🔊 Hora <span id="selectedHour"></span>:00</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem;">Seleccioná el nivel de ruido</p>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+        <button class="source-btn" data-level="NP">NP<br><small>No perceptible</small></button>
+        <button class="source-btn" data-level="B">B<br><small>Bajo</small></button>
+        <button class="source-btn" data-level="M">M<br><small>Medio</small></button>
+        <button class="source-btn" data-level="A">A<br><small>Alto</small></button>
+        <button class="source-btn" data-level="MA" style="grid-column: span 2;">MA<br><small>Muy alto</small></button>
+      </div>
+      <button id="cancelLevel" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- FAB ADMIN -->
+  <button id="adminFab" class="admin-fab" title="Panel Admin">⚙️</button>
+  <div id="adminMenu" class="admin-menu">
+    <button onclick="Bitacora.exportJSON()">⬇️ Exportar JSON</button>
+    <button onclick="Bitacora.importJSON()">⬆️ Importar JSON</button>
+    <button class="danger" onclick="Bitacora.clearAll()">🗑️ Borrar TODO</button>
+    <button class="danger" onclick="Auth.logout()">🔒 Cerrar sesión admin</button>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/bitacora.js"></script>
+</body>
+</html>
