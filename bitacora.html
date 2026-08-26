@@ -265,12 +265,10 @@ h1 {
 .btn-export-week  { border-color: var(--accent3); color: var(--accent3); }
 .btn-export-month { border-color: var(--gold);    color: var(--gold);    }
 .btn-export-all   { border-color: var(--accent2); color: var(--accent2); }
-
 .btn-export-day:hover   { background: rgba(0,119,204,0.10); }
 .btn-export-week:hover  { background: rgba(42,138,0,0.10);  }
 .btn-export-month:hover { background: var(--gold-bg);       }
 .btn-export-all:hover   { background: rgba(224,90,32,0.10); }
-
 [data-theme="dark"] .btn-export-day:hover   { background: rgba(0,212,255,0.12); }
 [data-theme="dark"] .btn-export-week:hover  { background: rgba(124,252,0,0.10); }
 [data-theme="dark"] .btn-export-all:hover   { background: rgba(255,107,53,0.10); }
@@ -596,44 +594,38 @@ h1 {
 
 /* ── Hora fila ── */
 .hora-fila {
-  display: grid;
-  grid-template-columns: 50px 140px minmax(140px, auto) 1fr;
-  gap: 6px;
-  align-items: start;
-  padding: 5px 0;
+  padding: 6px 0;
   border-bottom: 1px solid var(--border);
 }
-.hora-rating {
-  display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
-  align-items: center;
-  padding-top: 2px;
-}
-.hora-rating .rating-chip-label {
-  width: 26px;
-  height: 24px;
-  font-size: 0.55rem;
-}
-.hora-rating-clear {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.55rem;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-  background: transparent;
-  padding: 3px 5px;
-  cursor: pointer;
-  transition: all 0.15s;
-  line-height: 1;
-}
-.hora-rating-clear:hover { color: var(--accent2); border-color: var(--accent2); }
 .hora-fila:last-child { border-bottom: none; }
+.hora-fila-top {
+  display: grid;
+  grid-template-columns: 50px 160px 1fr;
+  gap: 6px;
+  align-items: start;
+}
 .hora-fila-label {
   font-family: 'Share Tech Mono', monospace;
   font-size: 0.65rem;
   color: var(--text-dim);
   padding-top: 5px;
   font-weight: 600;
+}
+.hora-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+  padding-left: 56px;
+}
+.hora-rating-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ── Desplegable fuente ── */
@@ -750,34 +742,27 @@ h1 {
 }
 
 /* ══════════════════════════════════════════
-   SECCIÓN DE CALIFICACIÓN POR FRANJA (día)
+   AGRUPACIÓN VISUAL POR FRANJA (calificación por hora, dentro del día)
 ══════════════════════════════════════════ */
-.rating-section {
-  padding: 6px 0 10px;
-  margin-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-.rating-title {
+.rating-section-title {
   font-family: 'Share Tech Mono', monospace;
   font-size: 0.62rem;
   letter-spacing: 1.5px;
   color: var(--gold);
   text-transform: uppercase;
-  margin-bottom: 6px;
+  padding: 6px 0 8px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border);
 }
-.franja-row {
-  display: grid;
-  grid-template-columns: 58px 1fr auto;
-  gap: 8px;
-  align-items: center;
-  padding: 4px 0;
-}
-.franja-row:not(:last-child) { border-bottom: 1px dashed var(--border); }
-.franja-label {
+.franja-group:not(:first-child) { border-top: 1px dashed var(--border); }
+.franja-group-header {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--text-dim);
+  font-size: 0.58rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  text-transform: uppercase;
+  padding: 8px 0 4px;
+  opacity: 0.85;
 }
 .rating-options { display: flex; gap: 5px; flex-wrap: wrap; }
 .rating-chip {
@@ -852,7 +837,9 @@ h1 {
   flex-shrink: 0;
 }
 
-
+/* ══════════════════════════════════════════
+   TÍTULOS Y NOTAS REUTILIZADOS POR LA TABLA
+══════════════════════════════════════════ */
 .chart-title {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
@@ -900,6 +887,7 @@ h1 {
   box-shadow: 0 1px 4px var(--shadow);
   position: relative;
   overflow: hidden;
+  max-width: 100%;
 }
 .tabla-panel-inner::before {
   content: '';
@@ -937,43 +925,11 @@ h1 {
 .tabla-leyenda {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 10px 16px;
   margin-bottom: 12px;
   padding: 8px 10px;
   background: var(--input-bg);
   border: 1px solid var(--border);
-}
-@media(max-width: 480px) {
-  .tabla-leyenda {
-    gap: 6px 8px;
-    padding: 6px 8px;
-  }
-  .tabla-leyenda-item {
-    font-size: 0.52rem;
-  }
-  .tabla-leyenda-swatch {
-    width: 9px; height: 9px;
-  }
-  .tabla-resumen {
-    min-width: 100%;
-    font-size: 0.58rem;
-  }
-  .tabla-resumen-nota {
-    font-size: 0.55rem;
-    line-height: 1.4;
-  }
-  .tabla-header-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .tabla-export-btns {
-    width: 100%;
-  }
-  .btn-tabla-export {
-    flex: 1;
-    text-align: center;
-    min-width: 0;
-  }
 }
 .tabla-leyenda-item {
   display: flex;
@@ -1008,6 +964,7 @@ h1 {
   text-align: center;
   position: sticky;
   top: 0;
+  z-index: 2;
 }
 .tabla-fila td {
   border: 1px solid var(--border);
@@ -1021,11 +978,21 @@ h1 {
   background: var(--week-hdr);
   white-space: nowrap;
 }
+/* La columna "Día" queda fija a la izquierda como referencia mientras se
+   recorren horizontalmente las franjas horarias (clave para mobile). */
+.tabla-fecha,
+.tabla-th-fecha {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+.tabla-th-fecha { z-index: 3; }
 .tabla-fecha {
   text-align: left !important;
   white-space: nowrap;
   padding-left: 8px !important;
   color: var(--text-dim);
+  box-shadow: 2px 0 4px var(--shadow);
 }
 .tabla-celda {
   font-weight: 700;
@@ -1131,18 +1098,19 @@ h1 {
   .day-number { font-size: 1.3rem; }
   .day-summary { font-size: 0.6rem; }
   
-  .hora-fila {
+  .hora-fila { padding: 5px 0; }
+  .hora-fila-top {
     grid-template-columns: 45px 1fr;
     gap: 4px;
-    padding: 4px 0;
   }
-  .hora-fila .fuente-select { grid-column: 1 / -1; }
-  .hora-fila .hora-rating { grid-column: 1 / -1; }
-  .hora-fila .hora-textarea  { grid-column: 1 / -1; }
+  .hora-fila-top .fuente-select { grid-column: 1 / -1; }
+  .hora-fila-top .hora-textarea  { grid-column: 1 / -1; }
   .hora-fila-label {
     font-size: 0.6rem;
     padding-top: 4px;
   }
+  .hora-rating-row { padding-left: 0; gap: 4px; margin-top: 4px; }
+  .hora-rating-label { font-size: 0.52rem; }
   
   .fuente-select {
     font-size: 0.6rem;
@@ -1199,14 +1167,20 @@ h1 {
   
   .rating-legend-global { gap: 6px; padding: 6px 10px; }
   .rating-legend-item { font-size: 0.55rem; }
-  .franja-row {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    padding: 6px 0;
-  }
-  .franja-label { font-size: 0.6rem; }
+  .rating-section-title { font-size: 0.58rem; }
+  .franja-group-header { font-size: 0.55rem; }
   .rating-chip-label { width: 27px; height: 24px; font-size: 0.55rem; }
   .franja-clear-btn { align-self: flex-start; }
+  .chart-title { font-size: 0.85rem; }
+
+  /* ── Tabla de calificaciones: referencia/leyenda y controles responsive ── */
+  .tabla-panel-inner { padding: 12px 10px; }
+  .tabla-header-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .tabla-export-btns { width: 100%; }
+  .btn-tabla-export { flex: 1 1 auto; text-align: center; font-size: 0.62rem; padding: 6px 6px; }
+  .tabla-leyenda { gap: 6px 10px; padding: 6px 8px; }
+  .tabla-leyenda-item { font-size: 0.56rem; }
+  .tabla-resumen-titulo { font-size: 0.78rem; }
 }
 
 @media(max-width: 480px) {
@@ -1224,18 +1198,19 @@ h1 {
     max-height: 2.4em;
   }
   
-  .hora-fila {
+  .hora-fila { padding: 4px 0; }
+  .hora-fila-top {
     grid-template-columns: 38px 1fr;
     gap: 3px;
-    padding: 3px 0;
   }
-  .hora-fila .fuente-select { grid-column: 1 / -1; }
-  .hora-fila .hora-rating { grid-column: 1 / -1; }
-  .hora-fila .hora-textarea  { grid-column: 1 / -1; }
+  .hora-fila-top .fuente-select { grid-column: 1 / -1; }
+  .hora-fila-top .hora-textarea  { grid-column: 1 / -1; }
   .hora-fila-label {
     font-size: 0.55rem;
     padding-top: 3px;
   }
+  .hora-rating-row { gap: 3px; margin-top: 3px; }
+  .hora-rating-label { font-size: 0.48rem; }
   
   .fuente-select {
     font-size: 0.55rem;
@@ -1306,14 +1281,26 @@ h1 {
   .rating-legend-global-label { width: 100%; }
   .rating-legend-item { font-size: 0.5rem; }
   .rating-chip-label { width: 24px; height: 22px; font-size: 0.5rem; }
-  .rating-title { font-size: 0.55rem; }
+  .rating-section-title { font-size: 0.55rem; }
+  .franja-group-header { font-size: 0.52rem; }
   .week-coverage { font-size: 0.45rem; }
-  .month-mini-grid { grid-template-columns: 1fr; }
+
+  /* ── Tabla de calificaciones: referencia/leyenda y controles responsive ── */
   .btn-tabla-toggle { font-size: 0.7rem; padding: 8px 14px; }
+  .tabla-panel-inner { padding: 10px 8px; }
+  .tabla-header-row { gap: 6px; }
+  .btn-tabla-export { font-size: 0.58rem; padding: 5px 8px; }
+  .tabla-leyenda { gap: 5px 8px; padding: 5px 6px; margin-bottom: 10px; }
+  .tabla-leyenda-item { font-size: 0.5rem; gap: 3px; }
+  .tabla-leyenda-swatch { width: 9px; height: 9px; }
   .tabla-mes { font-size: 0.58rem; min-width: 480px; }
   .tabla-mes thead th { font-size: 0.5rem; padding: 5px 3px; }
   .tabla-fila td { padding: 4px 3px; }
-  .btn-tabla-export { font-size: 0.58rem; padding: 5px 10px; }
+  .tabla-fecha { padding-left: 5px !important; }
+  .tabla-resumen-titulo { font-size: 0.75rem; }
+  .tabla-resumen { font-size: 0.6rem; min-width: 400px; }
+  .tabla-resumen th, .tabla-resumen td { padding: 5px 3px; }
+  .tabla-resumen-nota { font-size: 0.56rem; }
 }
 </style>
 </head>
@@ -1332,8 +1319,7 @@ h1 {
     <div class="badge">· BITÁCORA DE REGISTRO SONORO ·</div>
     <h1>Bitácora / Agenda de Ruido</h1>
     <p class="subtitle">SAUCE VIEJO, SANTA FE · REGISTRO DIARIO · 2026</p>
-    <a class="back-btn" href="index.html">← Volver al Mapa</a><a href="b/bitacora.html" target="_blank"> ← </a><a href="b/bitacora22.html" target="_blank"> ← </a>
-
+    <a class="back-btn" href="index.html">← Volver al Mapa</a>
   </header>
 
   <!-- BARRA DE EXPORTACIÓN PDF -->
@@ -1353,7 +1339,7 @@ h1 {
     <input type="file" id="import-file" accept=".json" onchange="restaurarRespaldo(event)">
     <button class="btn-delete-all" onclick="borrarTodosLosDatos()">🗑️ Borrar todo</button>
     <span class="backup-note">
-      Los datos se guardan en el navegador (notas + calificación por hora). Descargá el JSON como respaldo antes de limpiar caché.
+      Los datos se guardan en el navegador. Descargá el JSON como respaldo antes de limpiar caché.
     </span>
   </div>
 
@@ -1365,7 +1351,7 @@ h1 {
     <div class="calendar-month-title" id="calendar-month-title"></div>
 
     <div class="rating-legend-global">
-      <span class="rating-legend-global-label">🔊 Escala de ruido (por hora) —</span>
+      <span class="rating-legend-global-label">🔊 Escala de ruido —</span>
       <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-0)"></span>NP · No perceptible</span>
       <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-1)"></span>B · Bajo</span>
       <span class="rating-legend-item"><span class="rating-legend-swatch" style="background:var(--rt-2)"></span>M · Medio</span>
@@ -1376,9 +1362,9 @@ h1 {
     <div id="weeks-container"></div>
 
     <div class="tabla-bar">
-      <button class="btn-tabla-toggle" id="btn-tabla-toggle" onclick="toggleTablaMes()">📋 Ver tabla de calificaciones del mes</button>
+      <button class="btn-tabla-toggle" id="btn-tabla-toggle" onclick="toggleTablaMes()">✕ Ocultar tabla</button>
     </div>
-    <div class="tabla-panel" id="tabla-panel"></div>
+    <div class="tabla-panel visible" id="tabla-panel"></div>
   </div>
 
 </div><!-- /container -->
@@ -1416,6 +1402,9 @@ const RATING_LEVELS = [
   { value: 3, label: 'Alto',           abbr: 'A'  },
   { value: 4, label: 'Muy alto',       abbr: 'MA' },
 ];
+// Colores RGB usados en las tablas exportadas a PDF/Excel (mismo orden que RATING_LEVELS)
+const PDF_RATING_COLORS = [[42,138,0],[0,119,204],[176,128,0],[224,90,32],[179,38,30]];
+
 const FRANJAS = [
   { idx: 0, label: '00–04' },
   { idx: 1, label: '04–08' },
@@ -1433,8 +1422,6 @@ let mesActivo    = null;
 let diaActivo    = null;
 let semanaActiva = null;
 let diaAbierto   = null;
-
-// Calificaciones por hora (0-23). La tabla de bitácora agrega por franjas de 4hs.
 
 // ─── TEMA ─────────────────────────────────────────────────────────────────────
 function aplicarTema(tema) {
@@ -1510,7 +1497,11 @@ function borrarTodosLosDatos() {
   if (mesActivo !== null) abrirMes(mesActivo);
 }
 
-// ─── CALIFICACIÓN DE RUIDO POR HORA (0–23). Tabla agrega en franjas de 4hs ────
+// ─── CALIFICACIÓN DE RUIDO POR HORA (0-23) ────────────────────────────────────
+// Cada hora del día tiene su propia calificación NP/B/M/A/MA. La tabla bitácora
+// y todos los resúmenes (cobertura semanal, PDF, Excel, CSV) se siguen mostrando
+// agrupados en las 6 franjas de 4hs de siempre: cada franja toma el nivel MÁS ALTO
+// (peor caso) entre las horas de esa franja que hayan sido calificadas.
 function cargarCalificaciones() {
   try { return JSON.parse(localStorage.getItem(CALIF_KEY) || '{}'); }
   catch { return {}; }
@@ -1528,54 +1519,49 @@ function borrarCalificacionStorage(mes0, dia, hora) {
   localStorage.setItem(CALIF_KEY, JSON.stringify(data));
 }
 
-/** Calificaciones del día: { 0: nivel, 1: nivel, ... } horas 0–23 */
-function getCalificacionesDia(mes0, dia) {
+function franjaIdxDeHora(hora) { return Math.floor(hora / 4); }
+
+// Calificaciones horarias crudas de un día: { hora(0-23): valor(0-4) }
+function getCalificacionesHorasDia(mes0, dia) {
   const cal = cargarCalificaciones();
   const prefix = `${mes0}_${dia}_`;
   const result = {};
   Object.keys(cal).forEach(k => {
-    if (!k.startsWith(prefix)) return;
-    const rest = k.substring(prefix.length);
-    // Solo claves horarias numéricas 0–23 (ignora formato viejo de franja si hubiera conflicto)
-    if (/^\d+$/.test(rest)) {
-      const h = parseInt(rest, 10);
-      if (h >= 0 && h <= 23) result[h] = cal[k];
-    }
+    if (k.startsWith(prefix)) result[parseInt(k.substring(prefix.length), 10)] = cal[k];
   });
   return result;
 }
 
-/** Promedio de calificación del día (sobre horas calificadas) */
+// Calificaciones agregadas por FRANJA de un día: { franjaIdx(0-5): valor(0-4) }.
+// Usada por la tabla bitácora, la cobertura semanal y las exportaciones — todas
+// siguen "viendo" franjas de 4hs como antes, aunque el dato real ahora es horario.
+function getCalificacionesDia(mes0, dia) {
+  const horas = getCalificacionesHorasDia(mes0, dia);
+  const result = {};
+  Object.keys(horas).forEach(hStr => {
+    const h = parseInt(hStr, 10);
+    const f = franjaIdxDeHora(h);
+    const v = horas[h];
+    if (result[f] === undefined || v > result[f]) result[f] = v;
+  });
+  return result;
+}
+
 function getDayAvgRating(mes0, dia) {
   const vals = Object.values(getCalificacionesDia(mes0, dia));
   if (!vals.length) return null;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
-/** Nivel de una franja de 4hs: promedio redondeado de las horas de esa franja que tengan dato */
-function getFranjaRating(mes0, dia, franjaIdx) {
-  const calDia = getCalificacionesDia(mes0, dia);
-  const h0 = franjaIdx * 4;
-  const vals = [];
-  for (let h = h0; h < h0 + 4; h++) {
-    if (calDia[h] !== undefined) vals.push(calDia[h]);
-  }
-  if (!vals.length) return null;
-  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-}
-
 function computeWeekCoverage(mes0, wIdx) {
   const diasReales = getSemana(mes0, wIdx).filter(d => d !== null);
-  const cal = cargarCalificaciones();
   let filled = 0;
   const counts = [0, 0, 0, 0, 0];
   diasReales.forEach(d => {
-    for (let h = 0; h < 24; h++) {
-      const key = `${mes0}_${d}_${h}`;
-      if (cal[key] !== undefined) { filled++; counts[cal[key]]++; }
-    }
+    const calDia = getCalificacionesDia(mes0, d);
+    Object.values(calDia).forEach(v => { filled++; counts[v]++; });
   });
-  const posibles = diasReales.length * 24;
+  const posibles = diasReales.length * 6;
   const pct = posibles ? Math.round((filled / posibles) * 100) : 0;
   const maxIdx = filled ? counts.indexOf(Math.max(...counts)) : -1;
   return { filled, posibles, pct, maxIdx };
@@ -1586,33 +1572,31 @@ function weekCoverageHTML(mes0, wIdx) {
   const dominante = c.maxIdx >= 0
     ? `<span class="week-dominant-dot" style="background:var(--rt-${c.maxIdx})" title="${RATING_LEVELS[c.maxIdx].label}"></span>${RATING_LEVELS[c.maxIdx].label}`
     : 'sin datos';
-  return `${c.filled}/${c.posibles} hs (${c.pct}%) · ${dominante}`;
+  return `${c.filled}/${c.posibles} franjas (${c.pct}%) · ${dominante}`;
 }
 
-function renderHoraRating(mes0, dia, hora, wIdx) {
-  const calDia = getCalificacionesDia(mes0, dia);
-  const valor = calDia[hora];
-  const chips = RATING_LEVELS.map(lvl => {
+// Chips NP/B/M/A/MA para calificar UNA hora puntual (se usan dentro de cada hora-fila)
+function renderChipsHora(mes0, dia, hora, valor, wIdx) {
+  return RATING_LEVELS.map(lvl => {
     const id = `cal-${mes0}-${dia}-${hora}-${lvl.value}`;
     const checked = valor === lvl.value ? ' checked' : '';
-    return `<input type="radio" class="rating-chip" data-lvl="${lvl.value}" id="${id}" name="cal-${mes0}-${dia}-${hora}" value="${lvl.value}"${checked} onchange="seleccionarCalificacion(${mes0},${dia},${hora},${lvl.value},${wIdx})"><label class="rating-chip-label" data-lvl="${lvl.value}" for="${id}" title="${lvl.label}">${lvl.abbr}</label>`;
+    return `<input type="radio" class="rating-chip" data-lvl="${lvl.value}" id="${id}" name="cal-${mes0}-${dia}-${hora}" value="${lvl.value}"${checked} onchange="seleccionarCalificacionHora(${mes0},${dia},${hora},${lvl.value},${wIdx})"><label class="rating-chip-label" data-lvl="${lvl.value}" for="${id}" title="${lvl.label}">${lvl.abbr}</label>`;
   }).join('');
-  return `<div class="hora-rating">${chips}<button type="button" class="hora-rating-clear" title="Borrar calificación de esta hora" onclick="event.stopPropagation(); limpiarCalificacion(${mes0},${dia},${hora},${wIdx})">✕</button></div>`;
 }
 
-function seleccionarCalificacion(mes0, dia, hora, valor, wIdx) {
+function seleccionarCalificacionHora(mes0, dia, hora, valor, wIdx) {
   guardarCalificacionStorage(mes0, dia, hora, valor);
   actualizarUICalificacion(mes0, dia, wIdx);
-  const hStr = String(hora).padStart(2, '0') + ':00';
-  showToast(`✓ ${hStr} → ${RATING_LEVELS[valor].label}`);
+  const horaStr = String(hora).padStart(2, '0') + ':00';
+  showToast(`✓ ${horaStr} → ${RATING_LEVELS[valor].label}`);
 }
 
-function limpiarCalificacion(mes0, dia, hora, wIdx) {
+function limpiarCalificacionHora(mes0, dia, hora, wIdx) {
   borrarCalificacionStorage(mes0, dia, hora);
   document.querySelectorAll(`input[name="cal-${mes0}-${dia}-${hora}"]`).forEach(r => r.checked = false);
   actualizarUICalificacion(mes0, dia, wIdx);
-  const hStr = String(hora).padStart(2, '0') + ':00';
-  showToast(`${hStr} sin calificar`);
+  const horaStr = String(hora).padStart(2, '0') + ':00';
+  showToast(`Hora ${horaStr} sin calificar`);
 }
 
 function actualizarUICalificacion(mes0, dia, wIdx) {
@@ -1642,19 +1626,49 @@ function actualizarUICalificacion(mes0, dia, wIdx) {
   if (tablaMesAbierta && mesActivo !== null) renderTablaMes(mesActivo);
 }
 
+// ─── MIGRACIÓN: calificación por franja (formato anterior) → calificación por hora ──
+// Antes cada franja de 4hs tenía UNA sola calificación (clave "mes_dia_franjaIdx",
+// franjaIdx 0-5). Ahora cada hora tiene la suya (clave "mes_dia_hora", hora 0-23).
+// Esta función expande cualquier calificación vieja aplicando el mismo nivel a las
+// 4 horas de esa franja, para no perder los datos ya cargados en el navegador.
+function expandirCalificacionesLegacy(calObj) {
+  const nuevo = {};
+  Object.keys(calObj).forEach(k => {
+    const partes = k.split('_');
+    const franjaIdx = parseInt(partes[partes.length - 1], 10);
+    const prefijo = partes.slice(0, -1).join('_');
+    const valor = calObj[k];
+    if (!isNaN(franjaIdx) && franjaIdx >= 0 && franjaIdx <= 5) {
+      for (let i = 0; i < 4; i++) nuevo[`${prefijo}_${franjaIdx * 4 + i}`] = valor;
+    }
+  });
+  return nuevo;
+}
+
+function migrarCalificacionesAHoras() {
+  const FLAG = 'bitacora_ruido_calif_migrada_hora';
+  if (localStorage.getItem(FLAG)) return;
+  try {
+    const raw = cargarCalificaciones();
+    if (Object.keys(raw).length) {
+      const nuevo = expandirCalificacionesLegacy(raw);
+      if (Object.keys(nuevo).length) localStorage.setItem(CALIF_KEY, JSON.stringify(nuevo));
+    }
+  } catch {}
+  localStorage.setItem(FLAG, '1');
+}
+
+
 // ─── TABLA DE CALIFICACIONES POR DÍA (agrupada por semana, columnas = franjas) ─
-let tablaMesAbierta = false;
+let tablaMesAbierta = true;
 
 function construirFilasTablaMes(mes0) {
   const semanas = getWeeksOfMonth(mes0);
   const filas = [];
   semanas.forEach((dias, i) => {
     dias.forEach(d => {
-      // Franja = promedio de las horas calificadas dentro de ese bloque de 4hs
-      const franjas = FRANJAS.map(f => {
-        const r = getFranjaRating(mes0, d, f.idx);
-        return r !== null ? RATING_LEVELS[r].abbr : '—';
-      });
+      const calDia = getCalificacionesDia(mes0, d);
+      const franjas = FRANJAS.map(f => calDia[f.idx] !== undefined ? RATING_LEVELS[calDia[f.idx]].abbr : '—');
       filas.push({
         semana: `S${i + 1}`,
         weekIdx: i,
@@ -1757,7 +1771,7 @@ function renderTablaMes(mes0) {
         <table class="tabla-mes">
           <thead>
             <tr>
-              <th rowspan="2">Semana</th><th rowspan="2">Día</th>
+              <th rowspan="2">Semana</th><th class="tabla-th-fecha" rowspan="2">Día</th>
               <th colspan="6">Franja horaria</th>
             </tr>
             <tr>
@@ -1767,7 +1781,7 @@ function renderTablaMes(mes0) {
           <tbody>${filasHTML}</tbody>
         </table>
       </div>
-      <div class="chart-note">ℹ️ Cada celda es el promedio (redondeado) de las horas calificadas dentro de esa franja de 4hs. NP · B · M · A · MA. "—" = ninguna hora de esa franja fue calificada.</div>
+      <div class="chart-note">ℹ️ Cada celda muestra el nivel más alto registrado entre las horas calificadas de esa franja (NP=No perceptible, B=Bajo, M=Medio, A=Alto, MA=Muy alto). "—" indica que ninguna hora de esa franja fue calificada. Deslizá la tabla hacia los costados para ver todas las franjas; la columna "Día" queda fija como referencia.</div>
       ${resumenHTML}
     </div>`;
 }
@@ -1792,20 +1806,22 @@ function construirResumenDiasHTML(resumen) {
   return `
     <div class="tabla-resumen-wrap">
       <div class="tabla-resumen-titulo">📅 Cantidad de días (equivalentes) por nivel de ruido</div>
-      <table class="tabla-resumen">
-        <thead>
-          <tr><th>Nivel</th><th>Franjas</th><th>Días equiv.</th></tr>
-        </thead>
-        <tbody>
-          ${filasNivel}
-          ${filaSinCalificar}
-          <tr>
-            <th>Total</th>
-            <td class="resumen-total">${resumen.totalFranjas}</td>
-            <td class="resumen-total">${resumen.totalDiasEquiv.toFixed(2)}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="tabla-scroll">
+        <table class="tabla-resumen">
+          <thead>
+            <tr><th>Nivel</th><th>Franjas</th><th>Días equiv.</th></tr>
+          </thead>
+          <tbody>
+            ${filasNivel}
+            ${filaSinCalificar}
+            <tr>
+              <th>Total</th>
+              <td class="resumen-total">${resumen.totalFranjas}</td>
+              <td class="resumen-total">${resumen.totalDiasEquiv.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="tabla-resumen-nota">ℹ️ "Días equiv." = franjas de ese nivel ÷ 6 (igual criterio que la planilla Excel). La fila "Sin calificar" suma las franjas con "—" para que el total cierre con los ${resumen.totalDias} días de la tabla. Días con al menos una franja calificada: ${resumen.diasConRegistro}/${resumen.totalDias}.</div>
     </div>`;
 }
@@ -1819,6 +1835,7 @@ function exportarTablaCSV(mes0) {
     csv += [f.semana, f.fecha, ...f.franjas].join(';') + '\n';
   });
   csv += '\nReferencia;NP=No perceptible;B=Bajo;M=Medio;A=Alto;MA=Muy alto\n';
+  csv += 'Nota;Cada franja muestra el nivel mas alto registrado entre sus horas calificadas\n';
 
   csv += '\nCantidad de días (equivalentes) por nivel de ruido\n';
   csv += 'Nivel;Franjas;Días equivalentes\n';
@@ -1920,6 +1937,8 @@ function exportarTablaPDF(mes0) {
   doc.setFontSize(7);
   doc.setTextColor(140, 148, 170);
   doc.text('NP = No perceptible · B = Bajo · M = Medio · A = Alto · MA = Muy alto · "—" = franja sin calificar', marginX, yFinal);
+  yFinal += 3.5;
+  doc.text('Cada franja muestra el nivel más alto registrado entre sus horas calificadas.', marginX, yFinal);
 
   // ── Resumen: cantidad de días (equivalentes) por nivel de ruido ──
   const resumen = calcularResumenTablaMes(filas);
@@ -2009,7 +2028,7 @@ function exportarTablaExcel(mes0) {
   aoa.push(['Bitácora de Ruido · Sauce Viejo', ...Array(nCols - 1).fill('')]);
   aoa.push(Array(nCols).fill(''));
   aoa.push([...RATING_LEVELS.map(l => l.abbr), ...Array(nCols - RATING_LEVELS.length).fill('')]);
-  aoa.push(['NP = No perceptible  ·  B = Bajo  ·  M = Medio  ·  A = Alto  ·  MA = Muy alto', ...Array(nCols - 1).fill('')]);
+  aoa.push(['NP = No perceptible  ·  B = Bajo  ·  M = Medio  ·  A = Alto  ·  MA = Muy alto  ·  (cada franja = nivel más alto entre sus horas calificadas)', ...Array(nCols - 1).fill('')]);
   aoa.push(Array(nCols).fill(''));
   aoa.push(['Semana', 'Día', 'Franja horaria', '', '', '', '', '']);
   aoa.push(['', '', ...FRANJAS.map(f => f.label)]);
@@ -2235,27 +2254,47 @@ function renderDia(mes0, dia, wIdx) {
     ? `<span class="day-rating-badge" style="border-color:var(--rt-${Math.round(avgRating)})" title="Promedio del día: ${RATING_LEVELS[Math.round(avgRating)].label}"><span class="day-rating-dot" style="background:var(--rt-${Math.round(avgRating)})"></span></span>`
     : '';
 
-  let filas = '';
-  for (let hora = 0; hora < 24; hora++) {
-    const horaStr = String(hora).padStart(2, '0') + ':00';
-    const entry = entries[horaStr] || null;
-    const fuenteOpts = FUENTES.map(f =>
-      `<option value="${f.value}"${entry && entry.fuente === f.value ? ' selected' : ''}>${f.label}</option>`
-    ).join('');
-    filas += `
+  const calHoras = getCalificacionesHorasDia(mes0, dia);
+
+  // 24 horas agrupadas visualmente en las 6 franjas de siempre (00–04, 04–08...).
+  // Cada hora guarda su propia fuente / nota / calificación NP-B-M-A-MA.
+  let franjaGroups = '';
+  FRANJAS.forEach(fr => {
+    let horasHTML = '';
+    for (let off = 0; off < 4; off++) {
+      const hora = fr.idx * 4 + off;
+      const horaStr = String(hora).padStart(2, '0') + ':00';
+      const entry = entries[horaStr] || null;
+      const valor = calHoras[hora];
+      const fuenteOpts = FUENTES.map(f =>
+        `<option value="${f.value}"${entry && entry.fuente === f.value ? ' selected' : ''}>${f.label}</option>`
+      ).join('');
+      horasHTML += `
       <div class="hora-fila" id="fila-${mes0}-${dia}-${horaStr}">
-        <span class="hora-fila-label">${horaStr}</span>
-        <select class="fuente-select" id="fuente-${mes0}-${dia}-${horaStr}" onchange="autoguardar(${mes0},${dia},'${horaStr}')">
-          ${fuenteOpts}
-        </select>
-        ${renderHoraRating(mes0, dia, hora, wIdx)}
-        <textarea class="hora-textarea"
-          id="text-${mes0}-${dia}-${horaStr}"
-          placeholder="Nota ${horaStr}"
-          oninput="autoguardar(${mes0},${dia},'${horaStr}')"
-        >${entry ? entry.texto : ''}</textarea>
+        <div class="hora-fila-top">
+          <span class="hora-fila-label">${horaStr}</span>
+          <select class="fuente-select" id="fuente-${mes0}-${dia}-${horaStr}" onchange="autoguardar(${mes0},${dia},'${horaStr}')">
+            ${fuenteOpts}
+          </select>
+          <textarea class="hora-textarea"
+            id="text-${mes0}-${dia}-${horaStr}"
+            placeholder="${horaStr}"
+            oninput="autoguardar(${mes0},${dia},'${horaStr}')"
+          >${entry ? entry.texto : ''}</textarea>
+        </div>
+        <div class="hora-rating-row">
+          <span class="hora-rating-label">Nivel:</span>
+          <div class="rating-options">${renderChipsHora(mes0, dia, hora, valor, wIdx)}</div>
+          <button type="button" class="franja-clear-btn" title="Borrar calificación de esta hora" onclick="event.stopPropagation(); limpiarCalificacionHora(${mes0},${dia},${hora},${wIdx})">✕</button>
+        </div>
       </div>`;
-  }
+    }
+    franjaGroups += `
+    <div class="franja-group">
+      <div class="franja-group-header">🕐 Franja ${fr.label}</div>
+      ${horasHTML}
+    </div>`;
+  });
 
   return `
   <div class="day-block${esHoy ? ' today' : ''}${tieneEntrada ? ' has-entry' : ''}" id="day-${mes0}-${dia}">
@@ -2270,10 +2309,8 @@ function renderDia(mes0, dia, wIdx) {
       <span class="day-chevron">${isOpen ? '▲' : '▼'}</span>
     </div>
     <div class="day-horas${isOpen ? ' open' : ''}" id="dhors-${mes0}-${dia}">
-      <div class="rating-section">
-        <div class="rating-title">🔊 Calificación de ruido por hora (NP · B · M · A · MA)</div>
-      </div>
-      ${filas}
+      <div class="rating-section-title">🔊 Registro horario — fuente, nota y nivel de ruido</div>
+      ${franjaGroups}
       <div class="day-save-row">
         <span class="day-saved-label" id="saved-${mes0}-${dia}">✓ Guardado</span>
         <button class="btn-save-day" onclick="event.stopPropagation(); guardarDiaCompleto(${mes0},${dia})">💾 Guardar todo</button>
@@ -2387,7 +2424,8 @@ function guardarDiaCompleto(mes0, dia) {
   renderMeses();
 }
 
-// ─── UTILIDADES PARA TABLA / PDF (franjas derivadas de horas) ───────────────────
+// ─── UTILIDADES DE FECHAS / SEMANAS Y TEXTO PARA EXPORTACIONES ────────────────
+// Agrupa los días de un mes en semanas "de calendario" (igual que la grilla visual)
 function getWeeksOfMonth(mes0) {
   const totalDias = diasEnMes(mes0);
   const primerDia = diaSemana(mes0, 1);
@@ -2403,39 +2441,21 @@ function getWeeksOfMonth(mes0) {
 
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-function tallyFuentes(entriesFlat) {
-  const tally = {};
-  entriesFlat.forEach(e => { if (e && e.fuente) tally[e.fuente] = (tally[e.fuente] || 0) + 1; });
-  return Object.entries(tally).sort((a, b) => b[1] - a[1]);
-}
-
-function fuentesTopTexto(entriesFlat, max = 3) {
-  const arr = tallyFuentes(entriesFlat);
-  if (!arr.length) return 'sin fuentes registradas en las notas horarias de este período';
-  return arr.slice(0, max).map(([f, c]) => `${f} (${c})`).join(', ');
-}
-
+// Línea de texto con las 6 franjas del día (nivel agregado, peor caso entre sus horas)
 function franjasLineaPDF(mes0, dia) {
-  return FRANJAS.map(f => {
-    const r = getFranjaRating(mes0, dia, f.idx);
-    return `${f.label}: ${r !== null ? RATING_LEVELS[r].label : 'sin calificar'}`;
-  }).join('  ·  ');
-}
-
-function horasCalificadasLineaPDF(mes0, dia) {
   const calDia = getCalificacionesDia(mes0, dia);
-  const parts = [];
-  for (let h = 0; h < 24; h++) {
-    if (calDia[h] !== undefined) {
-      parts.push(`${String(h).padStart(2,'0')}:00=${RATING_LEVELS[calDia[h]].abbr}`);
-    }
-  }
-  return parts.length ? parts.join('  ') : 'sin horas calificadas';
+  return FRANJAS.map(f => `${f.label}: ${calDia[f.idx] !== undefined ? RATING_LEVELS[calDia[f.idx]].label : 'sin calificar'}`).join('  ·  ');
 }
 
-const PDF_RATING_COLORS = [[42,138,0],[0,119,204],[176,128,0],[224,90,32],[179,38,30]];
+// Línea de texto con el detalle hora por hora de las horas efectivamente calificadas
+function horasCalificadasLineaPDF(mes0, dia) {
+  const horas = getCalificacionesHorasDia(mes0, dia);
+  const claves = Object.keys(horas).map(Number).sort((a, b) => a - b);
+  if (!claves.length) return '';
+  return claves.map(h => `${String(h).padStart(2, '0')}:00 ${RATING_LEVELS[horas[h]].abbr}`).join('  ·  ');
+}
 
-// ─── EXPORTAR PDF (listados + calificaciones; sin gráficos) ───────────────────
+// ─── EXPORTAR PDF ─────────────────────────────────────────────────────────────
 function exportarPDF(tipo) {
   if (typeof window.jspdf === 'undefined') {
     showToast('⚠️ Cargando librería, reintentá en un momento', 4000); return;
@@ -2468,10 +2488,10 @@ function exportarPDF(tipo) {
   y += 8;
 
   const periodoLabel =
-    tipo === 'dia'      ? 'Día activo' :
-    tipo === 'semana'   ? 'Semana activa' :
-    tipo === 'mes'      ? MESES[mesActivo !== null ? mesActivo : h.mes] + ' ' + YEAR :
-                          'Año completo ' + YEAR;
+    tipo === 'dia'    ? 'Día activo' :
+    tipo === 'semana' ? 'Semana activa' :
+    tipo === 'mes'    ? MESES[mesActivo !== null ? mesActivo : h.mes] + ' ' + YEAR :
+                        'Año completo ' + YEAR;
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -2481,19 +2501,20 @@ function exportarPDF(tipo) {
   const fechaStr = `${pad(ahora.getDate())}/${pad(ahora.getMonth()+1)}/${ahora.getFullYear()}`;
   const horaStr = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}:${pad(ahora.getSeconds())}`;
   doc.text(`Período: ${periodoLabel}   ·   Generado: ${fechaStr}, ${horaStr}`, marginX, y);
-  y += 5;
+  y += 4;
   doc.setDrawColor(180, 160, 0);
   doc.setLineWidth(0.5);
   doc.line(marginX, y, 210 - marginX, y);
   y += 7;
 
   doc.setFont('helvetica', 'italic');
-  doc.setFontSize(6.5);
+  doc.setFontSize(6.3);
   doc.setTextColor(140, 148, 170);
-  const nota = 'Las calificaciones se registran por hora. Las franjas de 4hs en la tabla de bitácora son el promedio (redondeado) de las horas calificadas de ese bloque.';
+  const nota = 'Cada día lista las 6 franjas horarias (00–04, 04–08 ... 20–24) con el nivel más alto registrado entre sus horas calificadas, el detalle hora por hora y las notas horarias (fuente y descripción).';
   doc.splitTextToSize(nota, width).forEach(l => { doc.text(l, marginX, y); y += 3.2; });
   y += 5;
 
+  // ── listado de un día: franjas + horas calificadas + notas horarias (fuente / texto) ──
   const listarDia = (mes, dia, entries) => {
     if (y > 260) { doc.addPage(); y = 22; }
     doc.setFont('helvetica', 'bold');
@@ -2505,15 +2526,23 @@ function exportarPDF(tipo) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(90, 100, 130);
-    doc.splitTextToSize(`Franjas (promedio): ${franjasLineaPDF(mes, dia)}`, width).forEach(l => {
-      if (y > 270) { doc.addPage(); y = 22; }
-      doc.text(l, marginX, y); y += 3.8;
-    });
-    doc.splitTextToSize(`Horas: ${horasCalificadasLineaPDF(mes, dia)}`, width).forEach(l => {
+    doc.splitTextToSize(`Franjas: ${franjasLineaPDF(mes, dia)}`, width).forEach(l => {
       if (y > 270) { doc.addPage(); y = 22; }
       doc.text(l, marginX, y); y += 3.8;
     });
     y += 1;
+
+    const horasLinea = horasCalificadasLineaPDF(mes, dia);
+    if (horasLinea) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(90, 100, 130);
+      doc.splitTextToSize(`Horas calificadas: ${horasLinea}`, width).forEach(l => {
+        if (y > 270) { doc.addPage(); y = 22; }
+        doc.text(l, marginX, y); y += 3.8;
+      });
+      y += 1;
+    }
 
     if (!entries.length) {
       doc.setFont('helvetica', 'italic');
@@ -2524,13 +2553,10 @@ function exportarPDF(tipo) {
     } else {
       entries.forEach((entry) => {
         if (y > 270) { doc.addPage(); y = 22; }
-        const hNum = parseInt(entry.hora, 10);
-        const calDia = getCalificacionesDia(mes, dia);
-        const calTxt = (calDia[hNum] !== undefined) ? `  ·  Ruido: ${RATING_LEVELS[calDia[hNum]].label}` : '';
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(8);
         doc.setTextColor(0, 100, 180);
-        doc.text(`Hora: ${entry.hora}  ·  Fuente: ${entry.fuente || '—'}${calTxt}`, marginX, y);
+        doc.text(`Hora: ${entry.hora}  ·  Fuente: ${entry.fuente || '—'}`, marginX, y);
         y += 5;
         if (entry.texto && entry.texto.trim()) {
           doc.setFont('helvetica', 'normal');
@@ -2554,11 +2580,16 @@ function exportarPDF(tipo) {
   if (tipo === 'dia') {
     const mes = diaAbierto ? diaAbierto.mes : (mesActivo !== null ? mesActivo : h.mes);
     const dia = diaAbierto ? diaAbierto.dia : h.dia;
-    listarDia(mes, dia, getEntriesForDayExport(mes, dia));
-  } else if (tipo === 'semana') {
+    const entries = getEntriesForDayExport(mes, dia);
+    listarDia(mes, dia, entries);
+  }
+
+  else if (tipo === 'semana') {
     const dias = getSemana(semanaActiva.mes, semanaActiva.weekIdx).filter(d => d !== null);
     dias.forEach(d => listarDia(semanaActiva.mes, d, getEntriesForDayExport(semanaActiva.mes, d)));
-  } else if (tipo === 'mes') {
+  }
+
+  else if (tipo === 'mes') {
     const mes = mesActivo;
     const totalDias = diasEnMes(mes);
     for (let d = 1; d <= totalDias; d++) {
@@ -2566,22 +2597,19 @@ function exportarPDF(tipo) {
       const calDia = getCalificacionesDia(mes, d);
       if (entries.length || Object.keys(calDia).length) listarDia(mes, d, entries);
     }
-  } else if (tipo === 'todo') {
+  }
+
+  else if (tipo === 'todo') {
     MESES.forEach((nombreMes, m) => {
-      if (y > 260) { doc.addPage(); y = 22; }
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.setTextColor(176, 128, 0);
-      doc.text(`${nombreMes} ${YEAR}`, marginX, y);
-      y += 6;
-      let hayAlgo = false;
       const totalDias = diasEnMes(m);
+      let hayAlgo = false;
       for (let d = 1; d <= totalDias; d++) {
         const entries = getEntriesForDayExport(m, d);
         const calDia = getCalificacionesDia(m, d);
         if (entries.length || Object.keys(calDia).length) { hayAlgo = true; listarDia(m, d, entries); }
       }
       if (!hayAlgo) {
+        if (y > 270) { doc.addPage(); y = 22; }
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(8);
         doc.setTextColor(140, 148, 170);
@@ -2633,9 +2661,9 @@ function descargarRespaldo() {
   const payload = {
     app:     'bitacora_ruido_sauceviejo',
     version: 4,
+    granularidadCalificacion: 'hora', // desde v4: cada hora (0-23) tiene su propia calificación
     año:     YEAR,
     exportado: new Date().toISOString(),
-    formato_calificaciones: 'por_hora_0_a_23',
     entradas: data,
     calificaciones: calificaciones
   };
@@ -2648,7 +2676,7 @@ function descargarRespaldo() {
   a.download = `bitacora_ruido_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✓ Respaldo descargado (notas + calificaciones por hora)');
+  showToast('✓ Respaldo descargado (incluye notas y calificaciones)');
 }
 
 function restaurarRespaldo(event) {
@@ -2659,21 +2687,27 @@ function restaurarRespaldo(event) {
     try {
       const payload = JSON.parse(e.target.result);
       const entradas = payload.entradas || (payload.calificaciones ? {} : payload);
-      const calificaciones = payload.calificaciones || {};
+      let calificaciones = payload.calificaciones || {};
       if (typeof entradas !== 'object' || Array.isArray(entradas)) {
         showToast('⚠️ Archivo inválido'); return;
+      }
+      // Respaldos generados antes de la v4 calificaban por franja de 4hs (no por hora).
+      // Se expanden automáticamente a las 4 horas correspondientes para no perder datos.
+      const esFormatoPorFranja = !payload.version || payload.version < 4;
+      if (esFormatoPorFranja && Object.keys(calificaciones).length) {
+        calificaciones = expandirCalificacionesLegacy(calificaciones);
       }
       const totalEntradas = Object.keys(entradas).length;
       const totalCalif = Object.keys(calificaciones).length;
       const resumen = [
         totalEntradas ? `${totalEntradas} nota${totalEntradas !== 1 ? 's' : ''} horaria${totalEntradas !== 1 ? 's' : ''}` : null,
-        totalCalif ? `${totalCalif} franja${totalCalif !== 1 ? 's' : ''} calificada${totalCalif !== 1 ? 's' : ''}` : null
+        totalCalif ? `${totalCalif} hora${totalCalif !== 1 ? 's' : ''} calificada${totalCalif !== 1 ? 's' : ''}` : null
       ].filter(Boolean).join(' y ');
       if (!resumen) { showToast('⚠️ El archivo no tiene datos para restaurar'); return; }
       if (!confirm(`¿Restaurar ${resumen} desde el archivo?\nEsto reemplazará los datos actuales en el navegador.`)) return;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(entradas));
       if (totalCalif) localStorage.setItem(CALIF_KEY, JSON.stringify(calificaciones));
-      migrarCalificacionesSiNecesario();
+      localStorage.setItem('bitacora_ruido_calif_migrada_hora', '1');
       showToast(`✓ Restaurado: ${resumen}`);
       renderMeses();
       if (mesActivo !== null) abrirMes(mesActivo);
@@ -2685,42 +2719,8 @@ function restaurarRespaldo(event) {
   reader.readAsText(file);
 }
 
-
-// ─── MIGRACIÓN v3 (franja 0–5) → v4 (hora 0–23) ───────────────────────────────
-function migrarCalificacionesSiNecesario() {
-  const data = cargarCalificaciones();
-  const keys = Object.keys(data);
-  if (!keys.length) return;
-  // Si ya hay claves con hora >= 6 o muchas horas, asumir v4
-  const hasHourly = keys.some(k => {
-    const parts = k.split('_');
-    if (parts.length < 3) return false;
-    const h = parseInt(parts[2], 10);
-    return h >= 6 && h <= 23;
-  });
-  if (hasHourly) return;
-  // Solo claves tipo mes_dia_0..5 → expandir a 4 horas por franja
-  let migrated = 0;
-  const nuevo = { ...data };
-  keys.forEach(k => {
-    const m = k.match(/^(\d+)_(\d+)_([0-5])$/);
-    if (!m) return;
-    const mes0 = m[1], dia = m[2], f = parseInt(m[3], 10);
-    const valor = data[k];
-    for (let h = f * 4; h < f * 4 + 4; h++) {
-      const hk = `${mes0}_${dia}_${h}`;
-      if (nuevo[hk] === undefined) { nuevo[hk] = valor; migrated++; }
-    }
-    delete nuevo[k];
-  });
-  if (migrated > 0) {
-    localStorage.setItem(CALIF_KEY, JSON.stringify(nuevo));
-    console.info('[bitácora] Migradas', migrated, 'calificaciones de franja → hora');
-  }
-}
-
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-migrarCalificacionesSiNecesario();
+migrarCalificacionesAHoras();
 renderMeses();
 const hoyData = hoy();
 if (hoyData.year === YEAR) abrirMes(hoyData.mes);
